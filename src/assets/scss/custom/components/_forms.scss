@@ -1,0 +1,337 @@
+//
+// _forms.scss — PlatoScience brand overrides
+//
+
+// ── Inputs ────────────────────────────────────────────────────────
+.form-control {
+  border: 1.5px solid #E8E2D9;
+  border-radius: 6px;
+  background: #FFFFFF;
+  color: #495057;
+  font-family: 'Raleway', sans-serif;
+  font-size: 13px;
+  padding: 9px 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &::placeholder {
+    color: #AC8599;
+  }
+
+  &:focus {
+    border-color: #57072F;
+    box-shadow: 0 0 0 3px rgba(87, 7, 47, 0.1);
+    outline: none;
+  }
+
+  &:disabled,
+  &[readonly] {
+    background: #F9F7F4;
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+.form-select {
+  border: 1.5px solid #E8E2D9;
+  border-radius: 6px;
+  color: #495057;
+  font-family: 'Raleway', sans-serif;
+  font-size: 13px;
+  padding: 9px 36px 9px 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus {
+    border-color: #57072F;
+    box-shadow: 0 0 0 3px rgba(87, 7, 47, 0.1);
+    outline: none;
+  }
+}
+
+.form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #57072F;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+// ── Mobile form adjustments ───────────────────────────────────────
+@media (max-width: 575.98px) {
+  .form-control,
+  .form-select {
+    font-size: 16px; // prevents iOS auto-zoom on input focus
+  }
+}
+
+// ── Modals ────────────────────────────────────────────────────────
+.modal-content {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 20px 60px rgba(87, 7, 47, 0.12);
+}
+
+.modal-header {
+  border-bottom: 1px solid #EAE4DA;
+  padding: 20px 24px;
+
+  .modal-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #57072F;
+  }
+
+  .btn-close {
+    opacity: 0.4;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-footer {
+  border-top: 1px solid #EAE4DA;
+  padding: 16px 24px;
+}
+
+// ── Mobile modal adjustments ──────────────────────────────────────
+@media (max-width: 575.98px) {
+  .modal-content {
+    border-radius: 12px 12px 0 0; // flat bottom on mobile (bottom-sheet feel)
+  }
+
+  .modal-dialog {
+    margin: auto 0 0 0;
+    max-width: 100%;
+  }
+
+  .modal-header {
+    padding: 16px;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .modal-footer {
+    padding: 12px 16px;
+  }
+}
+
+
+
+
+[type="tel"],
+[type="url"],
+[type="email"],
+[type="number"] {
+  &::placeholder {
+    text-align: left
+      /*rtl: right*/
+    ;
+  }
+}
+
+.form-check {
+  position: relative;
+  text-align: left
+    /*rtl: right*/
+  ;
+}
+
+
+// checkbox input right
+
+.form-check-right {
+  padding-left: 0;
+  display: inline-block;
+  padding-right: $form-check-padding-start;
+
+  .form-check-input {
+    float: right;
+    margin-left: 0;
+    margin-right: $form-check-padding-start * -1;
+  }
+
+  .form-check-label {
+    display: block;
+  }
+}
+
+
+
+// checkbox
+
+.form-checkbox-outline {
+
+  .form-check-input {
+    border-width: 2px;
+    background-color: $card-bg;
+
+    &:active {
+      filter: none;
+    }
+
+    &:checked {
+      background-color: $card-bg  !important;
+
+      &[type=checkbox] {
+        background-image: none;
+
+      }
+
+      &:after {
+        position: absolute;
+        content: '\F012C';
+        font-family: "Material Design Icons";
+        top: -4px !important;
+        left: 1px;
+        /*rtl: -4px */
+        font-size: 16px;
+        color: $dark;
+      }
+    }
+  }
+}
+
+// radio
+
+.form-radio-outline {
+  .form-check-input {
+    background-color: $card-bg;
+    position: relative;
+
+    &:active {
+      filter: none;
+    }
+
+    &:checked {
+      background-color: $card-bg  !important;
+
+      &[type=checkbox] {
+        background-image: none;
+
+      }
+
+      &:after {
+        position: absolute;
+        content: '';
+        top: 3px !important;
+        left: 3px;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+      }
+    }
+  }
+}
+
+
+
+// checkbox color
+
+@each $color,
+$value in $theme-colors {
+  .form-check-#{$color} {
+    .form-check-input {
+      &:checked {
+        background-color: $value;
+        border-color: $value;
+      }
+    }
+  }
+
+  .form-radio-#{$color} {
+    .form-check-input {
+      &:checked {
+        border-color: $value;
+        background-color: $value;
+
+        &:after {
+          background-color: $value;
+        }
+      }
+    }
+  }
+}
+
+.form-check,
+.form-check-input,
+.form-check-label {
+  cursor: pointer;
+  margin-bottom: 0;
+}
+
+// Switch sizes
+
+.form-switch-md {
+  padding-left: 2.5rem;
+  min-height: 24px;
+  line-height: 24px;
+
+  .form-check-input {
+    width: 40px;
+    height: 20px;
+    left: -0.5rem;
+    position: relative;
+  }
+
+  .form-check-label {
+    vertical-align: middle;
+  }
+}
+
+
+.form-switch-lg {
+  padding-left: 2.75rem;
+  min-height: 28px;
+  line-height: 28px;
+
+  .form-check-input {
+    width: 48px;
+    height: 24px;
+    left: -0.75rem;
+    position: relative;
+  }
+}
+
+.input-group-text {
+  margin-bottom: 0px;
+}
+
+// transfer list
+
+.rdl-filter,
+.rdl-control {
+  background-color: $input-bg;
+  border-color: $input-border-color;
+  color: $input-color;
+}
+
+.react-dual-listbox {
+  button {
+    color: $dark;
+    border-color: $border-color;
+    background-color: $light;
+  }
+
+  input,
+  select {
+    &:disabled {
+      background-color: $input-disabled-bg;
+    }
+  }
+}
+
+.rdl-move {
+
+    .form-check-input,
+    .form-check-input:focus {
+      background-image: escape-svg(url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'><circle r='3' fill='#{$gray-400}'/></svg>"));
+    }
+  }

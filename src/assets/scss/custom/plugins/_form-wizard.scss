@@ -1,0 +1,213 @@
+//
+// _form-wizard.scss — PlatoScience brand overrides
+//
+
+.form-wizard-wrapper {
+  label {
+    font-size: 14px;
+    text-align: right;
+  }
+}
+
+.wizard {
+
+  // ── Step indicator row ────────────────────────────────────────
+  .steps {
+    > ul {
+      display: flex;
+      flex-wrap: nowrap;       // keep steps on one row on desktop
+      padding-left: 0;
+      margin-bottom: 0;
+      list-style: none;
+      gap: 3px;
+
+      @media (max-width: 767.98px) {
+        flex-wrap: wrap;        // stack vertically on mobile
+        gap: 2px;
+      }
+
+      > a, > li {
+        flex-basis: 0;
+        flex-grow: 1;
+      }
+
+      > li {
+        width: 100%;
+
+        a {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 12px;
+          color: #AC8599;
+          font-size: 12px;
+          font-weight: 500;
+          font-family: 'Raleway', sans-serif;
+          background-color: rgba(87, 7, 47, 0.05);
+          border-radius: 6px;
+          white-space: nowrap;
+          transition: background 0.15s ease, color 0.15s ease;
+
+          @media (max-width: 767.98px) {
+            white-space: normal;
+            font-size: 11px;
+          }
+        }
+      }
+
+      .current-info {
+        position: absolute;
+        left: -999em;
+      }
+    }
+
+    // Step number circle
+    .number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border: 2px solid #E8E2D9;
+      color: #AC8599;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 50%;
+      background: #FFFFFF;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    // Active / current step
+    .current {
+      a, a:active, a:hover {
+        background-color: rgba(87, 7, 47, 0.08);
+        color: #57072F;
+        font-weight: 600;
+
+        .number {
+          background-color: #57072F;
+          border-color: #57072F;
+          color: #FFFFFF;
+        }
+      }
+    }
+
+    // Completed step (passed)
+    li.done {
+      a {
+        color: #57072F;
+
+        .number {
+          background-color: #E0FFC2;
+          border-color: #E0FFC2;
+          color: #2A4A1F;
+        }
+      }
+    }
+  }
+
+  // ── Content area ──────────────────────────────────────────────
+  > .content {
+    background-color: transparent;
+    padding: 14px;
+    margin-top: 0;
+    border-radius: 0;
+    min-height: 150px;
+
+    > .title {
+      position: absolute;
+      left: -999em;
+    }
+
+    > .body {
+      width: 100%;
+      height: 100%;
+      padding: 14px 0 0;
+      position: static;
+    }
+  }
+
+  // ── Actions (prev / next buttons) ────────────────────────────
+  > .actions {
+    position: relative;
+    display: block;
+    text-align: right;
+    width: 100%;
+
+    > ul {
+      display: block;
+      text-align: right;
+      padding-left: 0;
+
+      > li {
+        display: inline-block;
+        margin: 0 0.5em;
+      }
+    }
+
+    a, a:active, a:hover {
+      background-color: #57072F;
+      border-radius: 6px;
+      padding: 8px 20px;
+      color: #FFFFFF;
+      font-family: 'Raleway', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      transition: background 0.15s ease;
+    }
+
+    a:hover {
+      background-color: #6d0c3a;
+    }
+
+    .disabled {
+      a, a:active, a:hover {
+        opacity: 0.45;
+        background-color: #57072F;
+        color: #FFFFFF;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  // ── Vertical wizard variant ───────────────────────────────────
+  &.vertical-wizard {
+    display: flex;
+    flex-wrap: wrap;
+
+    .steps {
+      > ul {
+        flex-direction: column;
+        flex-wrap: wrap;
+
+        > li {
+          width: 100% !important;
+        }
+      }
+    }
+
+    .steps, .content, .actions {
+      width: 100%;
+    }
+
+    .steps {
+      @media (min-width: 1200px) {
+        width: 25%;
+      }
+    }
+
+    .content {
+      padding: 24px;
+
+      @media (min-width: 1200px) {
+        width: 75%;
+        padding: 12px 24px;
+      }
+
+      > .body {
+        padding: 0;
+      }
+    }
+  }
+}

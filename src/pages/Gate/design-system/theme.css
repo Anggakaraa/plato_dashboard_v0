@@ -1,0 +1,796 @@
+/* src/pages/Gate/design-system/theme.css */
+
+:root {
+  /* Colors */
+  --gate-primary: #4361ee;
+  --gate-primary-light: #eef0fd;
+  --gate-secondary: #2ec4b6;
+  --gate-secondary-light: #e8f8f7;
+  --gate-accent: #f77f00;
+  --gate-accent-light: #fff3e0;
+  
+  --gate-bg-main: #f8f9fa;
+  --gate-bg-sidebar: #ffffff;
+  --gate-bg-header: #ffffff;
+  
+  --gate-text-primary: #212529;
+  --gate-text-secondary: #6c757d;
+  --gate-text-muted: #adb5bd;
+
+  --gate-border: #e9ecef;
+
+  /* Typography */
+  --gate-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  
+  /* Sizing & Spacing */
+  --gate-sidebar-width: 260px;
+  --gate-sidebar-collapsed-width: 80px;
+  --gate-header-height: 70px;
+  
+  /* Shadows */
+  --gate-shadow-sm: 0 2px 4px rgba(0,0,0,0.02);
+  --gate-shadow-md: 0 4px 12px rgba(0,0,0,0.05);
+  --gate-shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+
+  /* Transitions */
+  --gate-transition-fast: 0.2s ease-in-out;
+  --gate-transition-normal: 0.3s ease-in-out;
+}
+
+/* Base resets for Gate area */
+.gate-container {
+  font-family: var(--gate-font-family);
+  background-color: var(--gate-bg-main);
+  min-height: 100vh;
+  display: flex;
+  color: var(--gate-text-primary);
+}
+
+/* Sidebar */
+.gate-sidebar {
+  width: var(--gate-sidebar-width);
+  background-color: var(--gate-bg-sidebar);
+  border-right: 1px solid var(--gate-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 1000;
+  transition: width var(--gate-transition-normal);
+}
+
+.gate-logo-container {
+  height: var(--gate-header-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--gate-border);
+  padding: 0 10px;
+  transition: all var(--gate-transition-normal);
+}
+
+.gate-logo-expanded {
+  max-height: 25px;
+  min-height: 25px;
+  width: auto;
+}
+
+.gate-logo-collapsed {
+  max-height: 32px;
+  min-height: 32px;
+}
+
+.gate-sidebar-nav {
+  flex: 1;
+  padding: 20px 15px;
+  overflow-y: auto;
+}
+
+.gate-nav-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: var(--gate-text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  margin-bottom: 8px;
+  transition: all var(--gate-transition-fast);
+  cursor: pointer;
+}
+
+.gate-nav-item i {
+  font-size: 20px;
+  margin-right: 14px;
+}
+
+.gate-nav-item:hover,
+.gate-nav-item.active {
+  background-color: var(--gate-primary-light);
+  color: var(--gate-primary);
+}
+
+/* Collapsed Overrides */
+.sidebar-collapsed .gate-sidebar {
+  width: var(--gate-sidebar-collapsed-width);
+}
+
+.sidebar-collapsed .gate-main-wrapper {
+  margin-left: var(--gate-sidebar-collapsed-width);
+}
+
+.sidebar-collapsed .gate-nav-item {
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.sidebar-collapsed .gate-nav-item i {
+  margin-right: 0;
+  font-size: 24px;
+}
+
+.sidebar-collapsed .gate-logo-container {
+  padding: 0;
+}
+
+/* Main Content Wrapper */
+.gate-main-wrapper {
+  margin-left: var(--gate-sidebar-width);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: margin-left var(--gate-transition-normal);
+}
+
+/* Header */
+.gate-header {
+  height: var(--gate-header-height);
+  background-color: var(--gate-bg-header);
+  border-bottom: 1px solid var(--gate-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+.gate-header-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.gate-header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.gate-hamburger-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--gate-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  transition: background-color var(--gate-transition-fast);
+}
+
+.gate-hamburger-btn:hover {
+  background-color: var(--gate-bg-main);
+  color: var(--gate-text-primary);
+}
+
+/* Content Area */
+.gate-content-area {
+  flex: 1;
+  padding: 30px;
+  position: relative;
+}
+
+/* Page Top Loading Bar */
+.gate-top-loading-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 6px;
+  width: 100%;
+  background-color: var(--gate-primary-light);
+  overflow: hidden;
+  z-index: 10;
+}
+
+.gate-top-loading-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 50%;
+  background: linear-gradient(90deg, transparent, var(--gate-primary), var(--gate-secondary), transparent);
+  animation: gateTopLoading 1.5s infinite ease-in-out;
+  box-shadow: 0 0 10px rgba(67, 97, 238, 0.4);
+}
+
+@keyframes gateTopLoading {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* Footer */
+.gate-footer {
+  padding: 20px 30px;
+  border-top: 1px solid var(--gate-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--gate-text-muted);
+  font-size: 0.875rem;
+}
+
+/* --- Gate Resources Page Styles --- */
+
+.gate-card-border {
+  border: 1px solid var(--gate-border);
+  border-radius: 12px;
+  box-shadow: var(--gate-shadow-sm);
+  background-color: #fff;
+  height: 100%;
+}
+
+.gate-doc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.gate-doc-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border: 1px solid var(--gate-border);
+  border-radius: 6px;
+  margin-bottom: 12px;
+  transition: all var(--gate-transition-fast);
+  background-color: #fcfdfe;
+}
+
+.gate-doc-item:hover {
+  border-color: var(--gate-primary);
+  box-shadow: 0 2px 8px rgba(67, 97, 238, 0.1);
+  transform: translateY(-1px);
+}
+
+.gate-doc-item-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  color: var(--gate-text-primary);
+  text-decoration: none;
+}
+
+.gate-doc-item-title:hover {
+  color: var(--gate-primary);
+}
+
+.gate-doc-item-date {
+  font-size: 0.85rem;
+  color: var(--gate-text-secondary);
+}
+
+.gate-support-btn {
+  border: 1px solid var(--gate-border);
+  border-radius: 6px;
+  background-color: #fff;
+  padding: 10px 20px;
+  font-weight: 600;
+  color: var(--gate-text-primary);
+  transition: all var(--gate-transition-fast);
+  letter-spacing: 0.5px;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+.gate-support-btn:hover {
+  background-color: var(--gate-primary-light);
+  color: var(--gate-primary);
+  border-color: var(--gate-primary);
+}
+
+.gate-support-contact-box {
+  border: 1px solid var(--gate-border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* --- Gate Home Page Styles --- */
+
+.gate-welcome-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f4f7fe 100%);
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(67, 97, 238, 0.08);
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+}
+
+.gate-welcome-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--gate-primary) 0%, var(--gate-secondary) 100%);
+}
+
+.gate-welcome-icon-box {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  margin-bottom: 24px;
+}
+
+.gate-welcome-icon-box i {
+  font-size: 40px;
+  background: linear-gradient(135deg, var(--gate-primary) 0%, var(--gate-secondary) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gate-welcome-title {
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 16px;
+  font-size: 2rem;
+  letter-spacing: -0.5px;
+}
+
+.gate-welcome-subtitle {
+  color: #4a5568;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  max-width: 600px;
+}
+
+/* --- Dashboards & Widgets --- */
+
+.gate-widget-card {
+  border: 1px solid var(--gate-border);
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: var(--gate-shadow-sm);
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  transition: all var(--gate-transition-fast);
+}
+
+.gate-widget-card:hover {
+  box-shadow: var(--gate-shadow-md);
+  transform: translateY(-2px);
+}
+
+.gate-widget-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  background-color: var(--gate-primary-light);
+  color: var(--gate-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin-right: 20px;
+}
+
+.gate-widget-content h5 {
+  font-size: 0.9rem;
+  color: var(--gate-text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.gate-widget-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--gate-text-primary);
+  margin: 0;
+}
+
+.gate-table-card {
+  border: 1px solid var(--gate-border);
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: var(--gate-shadow-sm);
+  overflow: hidden;
+}
+
+.gate-table-card .card-header {
+  background-color: transparent;
+  border-bottom: 1px solid var(--gate-border);
+  padding: 20px 24px;
+}
+
+.gate-table-card .card-header h4 {
+  margin: 0;
+  font-weight: 600;
+  color: var(--gate-text-primary);
+}
+
+.gate-table {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.gate-table th {
+  border-top: none;
+  border-bottom: 1px solid var(--gate-border);
+  color: var(--gate-text-secondary);
+  font-weight: 600;
+  padding: 14px 24px;
+  background-color: #f7f9fb;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.5px;
+}
+
+.gate-table td {
+  padding: 16px 24px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--gate-border);
+  color: var(--gate-text-primary);
+  font-size: 0.9rem;
+}
+
+.gate-table tbody tr:hover {
+  background-color: #fcfdfe;
+}
+
+.gate-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* --- Stimulation Grid System --- */
+
+.gate-stimulation-card {
+  border: 1px solid var(--gate-border);
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: var(--gate-shadow-sm);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: all var(--gate-transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.gate-stimulation-card:hover {
+  box-shadow: var(--gate-shadow-lg);
+  transform: translateY(-4px);
+  border-color: #cbd5e1;
+}
+
+/* A dynamic left border to represent the stimulation protocol color */
+.gate-stimulation-card-color-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 6px;
+  background-color: var(--gate-primary);
+}
+
+.gate-stimulation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.gate-stimulation-header h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--gate-text-primary);
+  margin-bottom: 2px;
+}
+
+.gate-stimulation-display-name {
+  font-size: 0.85rem;
+  color: var(--gate-text-secondary);
+  background-color: #f1f5f9;
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.gate-stimulation-desc {
+  font-size: 0.9rem;
+  color: var(--gate-text-secondary);
+  line-height: 1.5;
+  margin-bottom: 16px;
+  flex-grow: 1;
+}
+
+.gate-stimulation-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--gate-border);
+}
+
+.gate-stimulation-metric {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--gate-text-primary);
+  background-color: #f8fafc;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.gate-stimulation-metric i {
+  color: var(--gate-primary);
+  margin-right: 6px;
+  font-size: 1.1rem;
+}
+
+.gate-stimulation-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+
+.gate-stimulation-actions .btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: transparent;
+  border: 1px solid var(--gate-border);
+  color: var(--gate-text-secondary);
+  transition: all var(--gate-transition-fast);
+  margin-left: 8px;
+}
+
+.gate-stimulation-actions .btn:hover {
+  background-color: #f1f5f9;
+  color: var(--gate-primary);
+  border-color: #cbd5e1;
+}
+
+.gate-stimulation-actions .btn-primary:hover {
+  background-color: var(--gate-primary-light);
+  color: var(--gate-primary);
+  border-color: var(--gate-primary-light);
+}
+
+/* --- Custom GateTable Component --- */
+
+.gate-table-wrapper {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  border: none;
+}
+
+.gate-global-search:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.gate-table th {
+  border-top: none;
+  border-bottom: none;
+  color: var(--gate-text-primary);
+  font-weight: 700;
+  padding: 16px 24px;
+  background-color: #ffffff;
+  text-transform: capitalize;
+  font-size: 0.95rem;
+  letter-spacing: normal;
+}
+
+.gate-table td {
+  padding: 16px 24px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f8fafc;
+  color: var(--gate-text-secondary);
+  font-weight: 500;
+  font-size: 0.92rem;
+}
+
+.gate-table tbody tr:hover {
+  background-color: #fcfdfe;
+}
+
+.gate-pagination {
+  gap: 8px;
+}
+
+.gate-page-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none !important;
+  background-color: #f1f5f9 !important;
+  color: #64748b !important;
+  font-weight: 600;
+  transition: all var(--gate-transition-fast);
+}
+
+.gate-page-btn:hover:not(:disabled) {
+  background-color: #e2e8f0 !important;
+  color: var(--gate-text-primary) !important;
+}
+
+.gate-page-btn.active {
+  background-color: var(--gate-primary) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+}
+
+.gate-page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.gate-btn-outline {
+  border: 1px solid #cbd5e1;
+  background-color: #fff;
+  color: #475569;
+  font-weight: 500;
+}
+
+.gate-btn-outline:hover {
+  background-color: #f8fafc;
+  color: var(--gate-text-primary);
+  border-color: #94a3b8;
+}
+
+.gate-btn-outline-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.gate-btn-outline-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+/* Primary Action Button - Gradient Style */
+.gate-btn-gradient-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+  color: #ffffff !important;
+}
+
+.gate-btn-gradient-primary:hover,
+.gate-btn-gradient-primary:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: #ffffff !important;
+}
+
+.gate-btn-gradient-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.gate-btn-gradient-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+/* Sidebar Header - Gradient Style */
+.gate-sidebar-header-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border-bottom: none !important;
+  color: #ffffff !important;
+}
+
+.gate-sidebar-header-gradient h5,
+.gate-sidebar-header-gradient .h5 {
+  color: #ffffff !important;
+}
+
+/* Skeleton Loading Animation */
+@keyframes skeletonLoading {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.gate-skeleton {
+  background-color: #e2e5e7;
+  background-image: linear-gradient(90deg, #e2e5e7 0px, #f0f2f4 40px, #e2e5e7 80px);
+  background-size: 200px 100%;
+  background-repeat: no-repeat;
+  animation: skeletonLoading 1.5s infinite linear;
+  border-radius: 4px;
+}
+
+/* Offcanvas Header Inverted Close Button */
+.offcanvas-header.text-white .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+  opacity: 0.8;
+}
+
+.offcanvas-header.text-white .btn-close:hover {
+  opacity: 1;
+}
+.offcanvas.offcanvas-end{
+  border-left: 0px !important;
+}
+
+
+/* Expandable Row Animation */
+@keyframes expandRow {
+  0% {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.expanded-row {
+  animation: expandRow 0.3s ease-out;
+}
+
+.expanded-content {
+  animation: expandRow 0.3s ease-out;
+  transform-origin: top;
+}
+
+/* Expanded / active row highlight */
+.gate-table tbody tr.gate-row-expanded,
+.gate-table tbody tr.gate-row-expanded:hover {
+  background-color: #cfd7f7 !important;
+  box-shadow: inset 3px 0 0 #31a84f;
+  transition: background-color 0.2s ease;
+}

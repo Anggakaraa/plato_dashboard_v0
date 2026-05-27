@@ -1,0 +1,107 @@
+//
+// _badge.scss — PlatoScience brand overrides
+//
+
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+
+  &[href] {
+    &:hover,
+    &:focus {
+      color: var(--#{$prefix}custom-white);
+    }
+  }
+}
+
+// ── PlatoScience semantic badge variants ─────────────────────────
+// Usage: <span className="badge ps-badge-active">Active</span>
+
+// Active / Online (boolean true)
+.ps-badge-active {
+  background-color: #E0FFC2;
+  color: #2A4A1F;
+}
+
+// Inactive / Disabled (boolean false)
+.ps-badge-inactive {
+  background-color: #F4F1EC;
+  color: #AC8599;
+}
+
+// Position (Left / Right / Back electrode)
+.ps-badge-position {
+  background-color: #506F7E;
+  color: #FFFFFF;
+}
+
+// Secondary / Custom treatment
+.ps-badge-secondary {
+  background-color: #053146;
+  color: #FFFFFF;
+}
+
+// Soft badge
+@mixin badge-variant-soft($bg) {
+  color: $bg;
+  background-color: rgba($bg, 0.18) !important;
+
+  &[href] {
+    &:hover,
+    &:focus {
+      color: $bg;
+      text-decoration: none;
+      background-color: rgba($bg, 0.4);
+    }
+  }
+}
+
+@each $color, $value in $theme-colors {
+  .badge {
+  &.bg-#{$color} {
+    &[href] {
+      &:hover,
+      &:focus {
+        background-color: darken($value, 4%) !important;
+      }
+    }
+  }
+}
+
+.badge{
+  &.bg-light{
+    color: var(--#{$prefix}body-color);
+
+    &[href] {
+      &:hover,
+      &:focus {
+        color: var(--#{$prefix}body-color);
+      }
+    }
+  }
+}
+
+.badge-soft-#{$color} {
+      @include badge-variant-soft($value);
+  }
+  
+}
+
+// .badge.badge-soft-dark {
+//   background-color: var(--#{$prefix}gray-200);
+//   color: var(--#{$prefix}gray-300);
+// }
+
+.rounded-pill{
+   padding-right: .6em;
+    padding-left: .6em;
+}
+
+// Dark badge
+
+.badge.bg-dark{
+  color: var(--#{$prefix}light);
+}

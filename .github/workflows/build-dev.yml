@@ -1,0 +1,102 @@
+name: Frontend Deployment - Development
+on:
+  push:
+    branches:
+      - develop
+jobs:
+  
+  infrastructure_provider:
+    name: Terraform
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v3
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1    
+
+    - name: Terraform Init
+      run: terraform init
+      working-directory: ./terraform
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.SERVICE_ACCOUNT_KEY }}
+
+    - name: Terraform Workspace
+      run: terraform workspace new dev | true
+      working-directory: ./terraform
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.SERVICE_ACCOUNT_KEY }}
+    
+    - name: Terraform Select Workspace
+      run: terraform workspace select dev
+      working-directory: ./terraform
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.SERVICE_ACCOUNT_KEY }}
+
+    # Generates an execution plan for Terraform
+    - name: Terraform Plan
+      run: terraform plan
+      working-directory: ./terraform
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.SERVICE_ACCOUNT_KEY }}
+
+    - name: Terraform Apply
+      run: terraform apply --auto-approve
+      working-directory: ./terraform
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.SERVICE_ACCOUNT_KEY }}
+
+    
+  deploy:
+    name: Deploy
+    needs: infrastructure_provider
+    runs-on: ubuntu-latest
+
+
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v3
+
+    - name: Declare Git Variables
+      run: |
+        echo "commit=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
+        echo "branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
+
+    - name: Build for Node.js 19.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: 19.x
+      env:
+        NODE_OPTIONS: "--max_old_space_size=8192"
+    - run: export NODE_OPTIONS="--max_old_space_size=8192"
+    - run: npm install --legacy-peer-deps
+    - run: npm run build:${{env.branch}}
+    
+    - id: 'auth'
+      name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        create_credentials_file: true
+        project_id: ${{ secrets.PROJECT_ID }}
+        credentials_json: ${{ secrets.SERVICE_ACCOUNT_KEY}}
+        audience: ''
+        service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v1'
+      with:
+        project_id: ${{ secrets.PROJECT_ID }}
+        version: '>= 363.0.0'
+    
+    - id: 'upload-file'
+      name: Push Files to Bucket
+      uses: 'google-github-actions/upload-cloud-storage@v1'
+      with:           
+        path: 'dist'
+        destination: 'plato-dashboard-files-dev'
+        parent: false
+        
+
+
+ 
