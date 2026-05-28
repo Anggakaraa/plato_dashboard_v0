@@ -77,6 +77,13 @@ export const handlers = [
   // ── CLINICS ──────────────────────────────────────────────────────────────
   http.get(`${API}/plato/clinics`, () => ok(clinics)),
 
+  // Single clinic by guid: GET /plato/clinic?guid=clinic-001
+  http.get(`${API}/plato/clinic`, ({ request }) => {
+    const guid = new URL(request.url).searchParams.get("guid");
+    const clinic = clinics.find((c) => c.guid === guid);
+    return clinic ? ok(clinic) : notFound();
+  }),
+
   http.post(`${API}/plato/clinic`, async ({ request }) => {
     const body = await request.json();
     const newClinic = { ...body, guid: `clinic-${Date.now()}`, id: Date.now(), disabled: false, signifier_count: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
@@ -226,17 +233,26 @@ export const handlers = [
     const page = url.searchParams.get("page");
     const limit = url.searchParams.get("limit");
     const search = url.searchParams.get("search") || "";
-    let results = search
-      ? patients.filter((p) => {
-          const q = search.toLowerCase();
-          const clinicName = p.clinic_patients?.[0]?.clinic?.name?.toLowerCase() ?? "";
-          return (
-            p.name.toLowerCase().includes(q) ||
-            p.email.toLowerCase().includes(q) ||
-            clinicName.includes(q)
-          );
-        })
-      : patients;
+    const clinicGuid = url.searchParams.get("clinic_guid") || "";
+    let results = patients;
+    // Filter by clinic if requested
+    if (clinicGuid) {
+      results = results.filter((p) =>
+        p.clinic_patients?.some((cp) => cp.clinic_id === clinicGuid)
+      );
+    }
+    // Text search
+    if (search) {
+      const q = search.toLowerCase();
+      results = results.filter((p) => {
+        const clinicName = p.clinic_patients?.[0]?.clinic?.name?.toLowerCase() ?? "";
+        return (
+          p.name.toLowerCase().includes(q) ||
+          p.email.toLowerCase().includes(q) ||
+          clinicName.includes(q)
+        );
+      });
+    }
     if (page !== null && limit !== null) return ok(paginate(results, Number(page), Number(limit)));
     return ok(results);
   }),

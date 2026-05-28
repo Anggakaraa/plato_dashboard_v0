@@ -44,6 +44,7 @@ import TreatmentDetails from "../pages/Treatments/Treatment-Details";
 import TreatmentList from "../pages/Treatments/Treatment-List";
 import TreatmentProtocols from "../pages/TreatmentProtocols";
 import TreatmentAssignment from "../pages/TreatmentAssignment";
+import ClinicDetail from "../pages/Clinics/ClinicDetail";
 import ResourcesPage from "../pages/Resources";
 
 // Gate Pages
@@ -66,6 +67,7 @@ const adminProtectedRoutes = [
 
   //clinics
   { path: "/clinics", component: <Clinics /> },
+  { path: "/clinics/detail/:guid", component: <ClinicDetail /> },
 
   //users
   { path: "/users", component: <PlatoUsers /> },

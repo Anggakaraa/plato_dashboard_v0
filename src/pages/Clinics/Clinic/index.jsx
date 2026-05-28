@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import LocalTableContainer from "../../../components/Common/LocalTableContainer";
 import {
   Card,
@@ -41,6 +41,7 @@ import { get } from "../../../api/manager";
 const Clinic = (props) => {
   document.title = `${props.t("Clinics")} | ${props.t("Platoscience")}`;
 
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const [clinic, setClinic] = useState(undefined);
   const [modal, setModal] = useState(false);
@@ -231,33 +232,17 @@ const Clinic = (props) => {
         },
       },
       {
-        Header: "Patients Summary",
+        Header: "",
+        id: "view_detail",
         Cell: (cellProps) => {
           const item = cellProps.row.original;
-          const path = `/clinics/patients/summary/${item.guid}`;
           return (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => navigate(`/clinics/detail/${item.guid}`)}
             >
-              <Link
-                to={path}
-                className="text-primary"
-                params={{ patient: item }}
-                onClick={() => {}}
-              >
-                <i
-                  className="mdi mdi-clipboard-text-outline font-size-18"
-                  id="detailtooltip"
-                />
-                <UncontrolledTooltip placement="top" target="detailtooltip">
-                  {props.t("Show patients sumary")}
-                </UncontrolledTooltip>
-              </Link>
-            </div>
+              {props.t("View Detail")}
+            </button>
           );
         },
       },
