@@ -266,12 +266,47 @@ export const handlers = [
   http.post(`${API}/plato/patient`, async ({ request }) => {
     const body = await request.json();
     const clinic = clinics.find((c) => c.guid === body.clinic);
+    const clinicLink = clinic
+      ? [{ clinic_id: clinic.guid, clinic: { guid: clinic.guid, name: clinic.name, clinic_clinicians: [] } }]
+      : [];
+
+    // ── Bulk "Default" patient creation (Add Default Patient modal) ──────────
+    // Payload shape: { totalPatient, clinic, type: "custom", signifier }
+    if (body.type === "custom" || body.totalPatient) {
+      const total = parseInt(body.totalPatient) || 1;
+      const sig = body.signifier || clinic?.signifier || "pat";
+      // Start counter from current signifier_count + 1
+      let startCount = (clinic?.signifier_count ?? 0) + 1;
+      const created = [];
+      for (let i = 0; i < total; i++) {
+        const counter = String(startCount + i).padStart(3, "0");
+        const email = `${sig}${counter}@platoscience.clinic`;
+        const name = `${sig.toUpperCase()} ${counter}`;
+        const newPat = {
+          guid: `pat-${Date.now()}-${i}`, id: nextPatientId++,
+          name, email,
+          disabled: false, native: false, legacy: false, migrated: false,
+          createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+          clinic_patients: clinicLink,
+          patient_treatments: [],
+          firebase_patients: [{ firebase_uid: `firebase-default-${Date.now()}-${i}` }],
+          patient_mobile_accesses: [{ credential: "123456" }],
+        };
+        patients.push(newPat);
+        created.push(newPat);
+      }
+      // Update the clinic's signifier_count so next batch continues from here
+      if (clinic) clinic.signifier_count = (clinic.signifier_count ?? 0) + total;
+      return ok(created);
+    }
+
+    // ── Single regular patient creation (Add Patient modal / Clinic Detail) ──
     const newPatient = {
       guid: `pat-${Date.now()}`, id: nextPatientId++,
       name: body.name, email: body.email,
       disabled: false, native: false, legacy: false, migrated: false,
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
-      clinic_patients: clinic ? [{ clinic_id: clinic.guid, clinic: { guid: clinic.guid, name: clinic.name, clinic_clinicians: [] } }] : [],
+      clinic_patients: clinicLink,
       patient_treatments: [],
       firebase_patients: [{ firebase_uid: `firebase-new-${Date.now()}` }],
       patient_mobile_accesses: [{ credential: "123456" }],
