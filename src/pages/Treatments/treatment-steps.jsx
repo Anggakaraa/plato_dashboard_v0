@@ -222,7 +222,6 @@ const TreatmentSteps = (props) => {
                 id={`slideSwitch-${stimulation.guid}`}
                 onChange={(e) => setForSlide(stimulation.guid, e.target.checked)}
                 onBlur={(e) => setForSlide(stimulation.guid, e.target.checked)}
-                disabled={params?.current !== 120}
               />
             </div>
           </div>
