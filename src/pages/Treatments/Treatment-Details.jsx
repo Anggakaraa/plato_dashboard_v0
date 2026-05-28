@@ -226,7 +226,7 @@ const TreatmentSteps = (props) => {
         setForSlide(guid, false)
       }
     } else {
-      if (slideSwitch && current === 120) {
+      if (slideSwitch) {
         slideSwitch.disabled = false
       }
     }

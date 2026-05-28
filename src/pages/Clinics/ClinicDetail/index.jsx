@@ -109,15 +109,24 @@ const ClinicDetail = (props) => {
       return;
     }
     setSaving(true);
-    await post(
-      `${baseurl}/plato/patient`,
-      { name: newPatient.name, email: newPatient.email, clinic: guid },
-      true,
-      {}
-    );
-    await fetchPatients();
-    setSaving(false);
-    togglePatientModal();
+    try {
+      const created = await post(
+        `${baseurl}/plato/patient`,
+        { name: newPatient.name, email: newPatient.email, clinic: guid },
+        true,
+        {}
+      );
+      // Optimistic update: add directly to list, then refresh for consistency
+      if (created) {
+        setPatients((prev) => [...prev, created]);
+      }
+      await fetchPatients();
+    } catch (err) {
+      console.error("Failed to add patient:", err);
+    } finally {
+      setSaving(false);
+      togglePatientModal();
+    }
   };
 
   // ─── Table columns ────────────────────────────────────────────────────────

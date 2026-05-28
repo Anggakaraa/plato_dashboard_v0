@@ -489,14 +489,12 @@ const AllPatients = (props) => {
       {
         key: "type",
         header: props.t("Type"),
-        render: (row) => {
-          const hasAssignment = (row.patient_treatments?.length ?? 0) > 0;
-          return hasAssignment ? (
-            <Badge color="info" className="fs-6">Regular</Badge>
+        render: (row) =>
+          row.email?.includes("@platoscience.clinic") ? (
+            <Badge color="secondary" className="fs-6">Default</Badge>
           ) : (
-            <Badge color="secondary" className="fs-6">Unassigned</Badge>
-          );
-        },
+            <Badge color="info" className="fs-6">Regular</Badge>
+          ),
       },
       {
         key: "clinic",

@@ -140,7 +140,7 @@ const TreatmentSteps = (props) => {
         setForSlide(guid, false)
       }
     } else {
-      if (slideSwitch && current === 120) slideSwitch.disabled = false
+      if (slideSwitch) slideSwitch.disabled = false
     }
     const localShamList = [...shamList]
     const previous = shamList.find((v) => v === guid);
@@ -625,11 +625,13 @@ const TreatmentSteps = (props) => {
                               Previous
                             </Link>
                           </li>
-                          <li className={activeTab === 4 ? "next disabled" : "next"}>
-                            <Link to="#" onClick={() => toggleTab(activeTab + 1, activeTab)}>
-                              Next
-                            </Link>
-                          </li>
+                          {activeTab < 4 && (
+                            <li className="next">
+                              <Link to="#" onClick={() => toggleTab(activeTab + 1, activeTab)}>
+                                Next
+                              </Link>
+                            </li>
+                          )}
                         </ul>
                       )}
                     </div>
