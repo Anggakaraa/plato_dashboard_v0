@@ -319,7 +319,8 @@ const TreatmentAssignment = (props) => {
                           <input
                             type="checkbox"
                             checked={allFilteredSelected}
-                            onChange={toggleAllFiltered}
+                            onChange={() => {}}
+                            onClick={(e) => { e.stopPropagation(); toggleAllFiltered(); }}
                             title={props.t("Select all filtered")}
                           />
                         </th>
@@ -356,7 +357,8 @@ const TreatmentAssignment = (props) => {
                               <input
                                 type="checkbox"
                                 checked={checked}
-                                onChange={() => togglePatient(p.guid)}
+                                onChange={() => {}}
+                                onClick={(e) => { e.stopPropagation(); togglePatient(p.guid); }}
                               />
                             </td>
                             <td>{p.name}</td>
