@@ -539,7 +539,6 @@ const TreatmentSteps = (props) => {
     setShamState(false)
     setAllowUpdateCurrentState(false)
     setOneSessionByDayState(false)
-    setSearchTerm('')
   }, [selectedClinic]);
 
   useEffect(() => {
