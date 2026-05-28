@@ -496,7 +496,6 @@ const TreatmentSteps = (props) => {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div className="form-check form-switch">
               <input
-                disabled
                 type="checkbox"
                 className="form-check-input"
                 id={`customSwitch-${stimulation.guid}`}
