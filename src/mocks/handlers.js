@@ -536,6 +536,17 @@ export const handlers = [
     return success();
   }),
 
+  // Update treatment group name/description/stimulations (protocol-only save)
+  http.post(`${API}/treatments-group/update`, async ({ request }) => {
+    const body = await request.json();
+    const idx = treatmentGroups.findIndex((g) => g.guid === body.guid);
+    if (idx !== -1) {
+      if (body.name) treatmentGroups[idx].name = body.name;
+      if (body.description !== undefined) treatmentGroups[idx].description = body.description;
+    }
+    return success();
+  }),
+
   // ── COUNTRIES ─────────────────────────────────────────────────────────────
   http.get(`${API}/plato/countries`, () =>
     ok([{ guid: "country-001", name: "Australia", code: "AU", disabled: false }])

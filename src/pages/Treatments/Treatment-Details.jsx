@@ -34,9 +34,8 @@ import { useFormik } from "formik"
 import * as Yup from "yup";
 import { useDispatch, useSelector } from "react-redux"
 import { withTranslation } from "react-i18next"
-import axios from "axios";
-import { addPatientTreatment, getCliniciansByClinic, getClinics, getClinicStimulations } from "../../store/actions";
-import { del, get, post } from "../../api/manager";
+import { getCliniciansByClinic, getClinics, getClinicStimulations } from "../../store/actions";
+import { get, post } from "../../api/manager";
 
 const TreatmentSteps = (props) => {
 
@@ -90,29 +89,13 @@ const TreatmentSteps = (props) => {
     })
   );
 
-  const [patients, setPatients] = useState([]);
-  const [selectedPatient, setSelectedPatient] = useState([])
-  const [activePatient, setActivePatient] = useState(-1)
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchResult, setSearchResult] = useState([]);
-  const [searchDefaults, setSeachDefaults] = useState([]);
-  const [canAddTreatment, setCanAddTreatment] = useState(false);
   const [isShamState, setShamState] = useState(false)
   const [shamList, setShamList] = useState([])
   const [slideList, setSlideList] = useState([])
   const [allowUpdateCurrentState, setAllowUpdateCurrentState] = useState(false)
   const [oneSessionByDayState, setOneSessionByDayState] = useState(false)
-  const [isReadyToSubmit, setIsReadyToSubmit] = useState(false)
 
   const [tabMessage, setTabMessage] = useState("");
-  const [selectedPatientName, setSelectedPatientName] = useState("");
-  const [patientAction, setPatientAction] = useState("");
-  const [patientToAction, setPatientToAction] = useState({});
-  const [modal_user, setmodal_user] = useState(false);
-
-  function tog_user_popup() {
-    setmodal_user(!modal_user);
-  }
 
   async function getTreatmentsDetails() {
     setLoadingTreatments(true)
@@ -130,7 +113,6 @@ const TreatmentSteps = (props) => {
     setTreatmentDetails(data.description)
 
     setSelectedClinic(data.clinic);
-    getPatientsSummary(data.clinic.guid);
     setInterventions(data.interventions)
     setTreatmentPatients(data.patient_treatment)
     setSelectedStimulations(data.interventions)
@@ -158,36 +140,6 @@ const TreatmentSteps = (props) => {
         })
       })
       setSelectedStimulations(data)
-    }
-  }
-
-  const preSelectPatients = () => {
-    if (treatmentPatients.length > 0) {
-      treatmentPatients.map((patient) => {
-        patients.map((p) => {
-          if (p.id === patient.patient_id) {
-            const element = document.getElementById(`select-patient-${p.id}`)
-            if (element) {
-              element.checked = true
-            }
-          }
-          if (patient.research_treatment === 1) {
-            const element = document.getElementById(`researchTreatment`)
-            if (element) {
-              element.checked = true
-            }
-          }
-          if (patient.sessions_by_day === 1) {
-            const element = document.getElementById(`oneSessionByDayState`)
-            if (element) {
-              element.checked = true
-            }
-          }
-        })
-      })
-      const patientIds = treatmentPatients.map((patient) => { return patient.patient_id });
-      console.log('treatmentPatients', patientIds)
-      setSelectedPatient(patientIds);
     }
   }
 
@@ -244,17 +196,6 @@ const TreatmentSteps = (props) => {
       </Row>
     );
   };
-
-  const getPatientsSummary = async (guid) => {
-
-    const baseurl = import.meta.env.VITE_APP_GATEWAY_URL;
-    const [data] = await Promise.all([
-      await axios.get(`${baseurl}/patients/from-clinic/${guid}`)
-    ])
-    const sortedData = data.data //data.data.sort((a, b) => a.name.localeCompare(b.name));
-    setPatients(sortedData);
-    setSeachDefaults(sortedData);
-  }
 
   const switchStimulation = (guid) => {
 
@@ -510,140 +451,6 @@ const TreatmentSteps = (props) => {
     );
   };
 
-  const searchByName = (event) => {
-    const currentInput = event.target.value;
-    setSearchTerm(currentInput);
-
-    if (currentInput.trim().length > 0) {
-      const result = searchDefaults.filter(patient =>
-        patient.name && patient.name.toLowerCase().includes(currentInput.toLowerCase())
-      );
-      setSearchResult(result);
-    } else {
-      setSearchResult(searchDefaults);
-    }
-  };
-
-  const handleSelectAllPatients = (isChecked) => {
-    const allPatientGuids = (searchTerm.trim().length > 0 ? searchResult : patients).map((patient) => {
-      document.getElementById("select-patient-" + patient.id).checked = isChecked;
-      return patient.guid;
-    });
-    setSelectedPatient(isChecked ? allPatientGuids : []);
-  };
-
-  const addSelectedPatient = (patient) => {
-    setPatientToAction(patient)
-    setSelectedPatientName(patient.name)
-    setSelectedPatient((prevSelected) => {
-      const isSelected = prevSelected.includes(patient.id);
-      if (isSelected) {
-        setPatientAction("Remove")
-      } else {
-        setPatientAction("Add")
-      }
-      setmodal_user(!modal_user);
-
-      return prevSelected;
-    });
-  }
-
-  const removeOrAddSelectedPatientPopup = (patient, isRemove) => {
-
-    let updatedSelection = null;
-    const element = document.getElementById(`select-patient-${patient.id}`)
-    setSelectedPatient((prevSelected) => {
-      console.log('prevSelected', isRemove)
-      // 
-      /**
-       * if selected. add the patient id to the array
-       * Handler cancel actions for remove and add patient
-       */
-      if (patientAction === "Remove" && isRemove) {
-        updatedSelection = prevSelected.filter((selected) => selected !== patient.id)
-        element.checked = false
-        console.log('remove patient from treatment', patient)
-        handleDispatchSaveTreatment(patient, "remove")
-      } else if (patientAction === "Add" && isRemove) {
-        updatedSelection = [...prevSelected, patient.id]
-        element.checked = true
-        console.log('add patient to treatment', patient)
-        handleDispatchSaveTreatment(patient, "add")
-      } else if (patientAction === "Remove" && !isRemove) {
-        updatedSelection = [...prevSelected, patient.id]
-        element.checked = true
-        setmodal_user(!modal_user);
-      } else if (patientAction === "Add" && !isRemove) {
-        updatedSelection = prevSelected.filter((selected) => selected !== patient.id)
-        element.checked = false
-        setmodal_user(!modal_user);
-      }
-      const allPatientGuids = (searchTerm.trim().length > 0 ? searchResult : patients).map((p) => p.id);
-      const isAllSelected = updatedSelection.length === allPatientGuids.length;
-      //document.getElementById("select-all-patients").checked = isAllSelected;
-      return updatedSelection;
-    });
-  }
-
-  const handleDispatchSaveTreatment = async (patient, action) => {
-    const filtered = selectedStimulations.filter(
-      (stimulation) => stimulation.selected
-    );
-    //here check if shamList items are in filtered and create a property is_sham to the filtered array items
-
-    let filteredWithSham = [];
-    const isShamSlider = [...shamList, ...slideList]
-    if (isShamSlider.length > 0) {
-      filteredWithSham = filtered.map((value) => {
-
-        if (shamList.includes(value.guid)) {
-          return { ...value, is_sham: true }
-        } else {
-          return { ...value, is_sham: false }
-        }
-      })
-    }
-
-    const filteredWithShamSlide = filteredWithSham.map((value) => {
-      if (slideList.includes(value.guid)) {
-        return { ...value, allow_slide: true }
-      }
-      return { ...value, allow_slide: false }
-    })
-    const objectData = {
-      patient: patient.id,
-      clinic: selectedClinic.guid,
-      clinician: selectedClinician.guid,
-      stimulations: selectedStimulations.map((stimulation) => stimulation.guid),
-      treatment: treatmentId,
-      is_sham: filteredWithShamSlide.length > 0 ? filteredWithShamSlide : isShamState,
-      allow_update_electric_current: isShamState ? false : allowUpdateCurrentState,
-      sessions_by_day: oneSessionByDayState === true ? 1 : 0,
-    };
-    if (action === "remove") {
-      setDispatchActionLoading(true)
-      const patientId = Number.parseInt(patient.id)
-      const treatmentId = Number.parseInt(treatments.id)
-      const [data] = await Promise.all([
-        await del(`${baseurl}/remove-patient-treatment-group?patient=${patientId}&treatment=${treatmentId}`, true, {})
-      ])
-      console.log("removing using data", objectData)
-      setDispatchActionLoading(false)
-      setmodal_user(!modal_user);
-      console.log("data", objectData)
-    } else if (action === "add") {
-      setDispatchActionLoading(true)
-      const [data] = await Promise.all([
-        await post(`${baseurl}/add-patient-treatment-group`, objectData, {})
-      ])
-      setDispatchActionLoading(false)
-      setmodal_user(!modal_user);
-      console.log("data", objectData)
-    }
-    console.log("action", action)
-
-  }
-
   const validation = useFormik({
     enableReinitialize: true,
 
@@ -656,48 +463,16 @@ const TreatmentSteps = (props) => {
 
     }),
     onSubmit: async (values) => {
-      const filtered = selectedStimulations.filter(
-        (stimulation) => stimulation.selected
-      );
-      //here check if shamList items are in filtered and create a property is_sham to the filtered array items
-
-      let filteredWithSham = [];
-      const isShamSlider = [...shamList, ...slideList]
-      if (isShamSlider.length > 0) {
-        filteredWithSham = filtered.map((value) => {
-
-          if (shamList.includes(value.guid)) {
-            return { ...value, is_sham: true }
-          } else {
-            return { ...value, is_sham: false }
-          }
-        })
-      }
-
-      const filteredWithShamSlide = filteredWithSham.map((value) => {
-        if (slideList.includes(value.guid)) {
-          return { ...value, allow_slide: true }
-        }
-        return { ...value, allow_slide: false }
-      })
-
-      const guids = filtered.map((value) => value.guid);
+      // Protocol-only save — patient assignment is handled via Treatment Assignment page
+      const filtered = selectedStimulations.filter((s) => s.selected);
       const data = {
-        patient: selectedPatient.length == 1 ? selectedPatient[0] : selectedPatient,
-        clinic: selectedClinic.guid,
-        clinician: selectedClinician.guid,
-        stimulations: guids,
-        is_sham: filteredWithShamSlide.length > 0 ? filteredWithShamSlide : isShamState,
-
-        allow_update_electric_current: isShamState ? false : allowUpdateCurrentState,
-        sessions_by_day: oneSessionByDayState == true ? 1 : 0,
-        treatment: {
-          name: values.treatmentName,
-          details: values.treatmentDetails,
-        }
+        guid: treatmentId,
+        name: values.treatmentName,
+        description: values.treatmentDetails,
+        stimulations: filtered.map((s) => s.guid),
       };
-      console.log("data", data)
-      dispatch(addPatientTreatment(data));
+      await post(`${baseurl}/treatments-group/update`, data, true, {});
+      handlerMessage("Protocol saved successfully");
     },
   });
 
@@ -713,42 +488,21 @@ const TreatmentSteps = (props) => {
       case 1:
         if (validation.values.treatmentName === "") {
           handlerMessage("Please enter the treatment name");
-          setIsReadyToSubmit(false);
           return;
         }
         break
       case 2:
         if (selectedClinic === undefined) {
           handlerMessage("Please select the clinic");
-          setIsReadyToSubmit(false);
           return;
         }
         break
-      case 3:
-        if (selectedStimulations.length === 0) {
-          handlerMessage("Please select the stimulation");
-          setIsReadyToSubmit(false);
-          return;
-        }
+      default:
         break
-      case 4:
-        if (selectedPatient.length === 0) {
-          handlerMessage("Please select the patients");
-          setIsReadyToSubmit(false);
-          return;
-        }
-        if (validation.values.treatmentName && selectedClinic && selectedStimulations.length > 0 && selectedPatient.length > 0) {
-          setIsReadyToSubmit(true);
-        } else {
-          setIsReadyToSubmit(false);
-        }
-
-        break
-
     }
     if (activeTab !== tab) {
       var modifiedSteps = [...passedSteps, tab]
-      if (tab >= 1 && tab <= 5) {
+      if (tab >= 1 && tab <= 3) {
         setactiveTab(tab)
         setPassedSteps(modifiedSteps)
       }
@@ -780,8 +534,6 @@ const TreatmentSteps = (props) => {
     setSelectedStimulations([]);
     dispatch(getCliniciansByClinic(selectedClinic.guid));
     dispatch(getClinicStimulations(selectedClinic.guid));
-    getPatientsSummary(selectedClinic.guid);
-    setSelectedPatient([]);
     setShamList([])
     setSlideList([])
     setShamState(false)
@@ -797,23 +549,9 @@ const TreatmentSteps = (props) => {
   }, [clinic_stimulations])
 
   useEffect(() => {
-    if (treatmentPatients.length > 0) {
-      preSelectPatients()
-    }
-  }, [patients])
-
-  useEffect(() => {
     if (!clinician_users || clinician_users.length === 0) return;
     setSelectedClinician(clinician_users[0]);
   }, [clinician_users]);
-
-  useEffect(() => {
-    if (validation.values.treatmentName && selectedClinic && selectedStimulations.length > 0 && selectedPatient.length > 0) {
-      setIsReadyToSubmit(true);
-    } else {
-      setIsReadyToSubmit(false);
-    }
-  }, [validation.values.treatmentName, selectedClinic, selectedStimulations, selectedPatient]);
 
   return (
     <React.Fragment>
@@ -870,20 +608,6 @@ const TreatmentSteps = (props) => {
                             <span className="number">3.</span> Stimulations
                           </NavLink>
                         </NavItem>
-                        <NavItem
-                          className={classnames({ current: activeTab === 4 })}
-                        >
-                          <NavLink
-                            className={classnames({ active: activeTab === 4 })}
-                            onClick={() => {
-                              setactiveTab(4)
-                            }}
-
-                          >
-                            <span className="number">4.</span> Patients
-                          </NavLink>
-                        </NavItem>
-
                       </ul>
                     </div>
                     <div className="content clearfix">
@@ -1000,103 +724,6 @@ const TreatmentSteps = (props) => {
                             </Form>
                           </div>
                         </TabPane>
-                        <TabPane tabId={4}>
-                          <div>
-                            <Form>
-                              <Col xs={12}>
-                                <Row>
-                                  <Col xs="">
-                                    <Label className="form-label">Patients {selectedPatient.length > 0 ? `( Selected ${selectedPatient.length})` : ''}</Label>
-                                  </Col>
-                                  <Col xs={12}>
-                                    <Card className="">
-                                      <Input type="text" className="form-control mb-2" placeholder="Search by name" value={searchTerm} onChange={searchByName} />
-                                      <div className="" style={{ maxHeight: "500px", overflowY: "auto" }}>
-                                        <Table bordered>
-                                          <thead className="table-light">
-                                            <tr>
-                                              <th>
-
-                                              </th>
-                                              <th>{props.t("Name")}</th>
-                                              <th>{props.t("Email")}</th>
-                                            </tr>
-                                          </thead>
-                                          <tbody>
-                                            {loading ? (
-                                              <tr>
-                                                <td colSpan="3" className="text-center">
-                                                  <div className="spinner-border" role="status">
-                                                    <span className="visually-hidden">Loading...</span>
-                                                  </div>
-                                                </td>
-                                              </tr>
-                                            ) : (searchTerm.trim().length > 0 ? searchResult : patients).length > 0 ? (
-                                              (searchTerm.trim().length > 0 ? searchResult : patients).map((patient, index) => (
-                                                <tr key={patient.guid} className={classnames({ 'active-background': activePatient === index })}>
-                                                  <td>
-                                                    <input
-                                                      type="checkbox"
-                                                      id={`select-patient-${patient.id}`}
-                                                      onChange={() => addSelectedPatient(patient)}
-                                                    //checked={selectedPatient.includes(patient.guid)}
-                                                    />
-                                                  </td>
-                                                  <td>{patient.name}</td>
-                                                  <td>{patient.email}</td>
-                                                </tr>
-                                              ))
-                                            ) : (
-                                              <tr>
-                                                <td colSpan="3" className="text-center">
-                                                  <Alert color="info">No patients available</Alert>
-                                                </td>
-                                              </tr>
-                                            )}
-                                          </tbody>
-                                        </Table>
-                                      </div>
-
-                                    </Card>
-
-                                  </Col>
-                                </Row>
-                              </Col>
-                            </Form>
-                            <Modal
-                              isOpen={modal_user}
-                              toggle={() => {
-                                tog_user_popup();
-                              }}
-                              backdrop={'static'}
-                              id="staticBackdrop"
-                            >
-                              <div className="modal-header">
-                                <h5 className="modal-title" id="staticBackdropLabel">{patientAction} patient</h5>
-                                <button type="button" className="btn-close"
-                                  onClick={() => {
-                                    setmodal_user(false);
-                                  }} aria-label="Close"></button>
-                              </div>
-                              <div className="modal-body">
-                                <p>Are you sure you want to {patientAction} {selectedPatientName} to the treatment?</p>
-                              </div>
-                              <div className="modal-footer">
-                                {dispatchActionLoading && <div className="spinner-border text-primary d-flex justify-content-center align-items-center" role="status">
-                                  <span className="visually-hidden">Loading...</span>
-                                </div>}
-                                <button disabled={dispatchActionLoading} type="button" className="btn btn-warning" onClick={() => {
-                                  removeOrAddSelectedPatientPopup(patientToAction, false)
-                                }}>Cancel</button>
-                                <button disabled={dispatchActionLoading} type="button" onClick={() => {
-
-                                  removeOrAddSelectedPatientPopup(patientToAction, true)
-
-                                }} className="btn btn-success">Yes</button>
-                              </div>
-                            </Modal>
-                          </div>
-                        </TabPane>
                       </TabContent>
 
                     </div>
@@ -1121,18 +748,26 @@ const TreatmentSteps = (props) => {
                             Previous
                           </Link>
                         </li>
-                        <li
-                          className={activeTab === 5 ? "next disabled" : "next"}
-                        >
-                          <Link
-                            to="#"
-                            onClick={() => {
-                              toggleTab(activeTab + 1, activeTab)
-                            }}
-                          >
-                            Next
-                          </Link>
-                        </li>
+                        {activeTab < 3 && (
+                          <li className="next">
+                            <Link
+                              to="#"
+                              onClick={() => toggleTab(activeTab + 1, activeTab)}
+                            >
+                              Next
+                            </Link>
+                          </li>
+                        )}
+                        {activeTab === 3 && (
+                          <li className="next">
+                            <Link
+                              to="#"
+                              onClick={() => validation.handleSubmit()}
+                            >
+                              Save Protocol
+                            </Link>
+                          </li>
+                        )}
                       </ul>
 
                     </div>
