@@ -628,6 +628,63 @@ export const handlers = [
     return ok({ success: true, ...newTreatment });
   }),
 
+  // Bulk-assign a treatment protocol to multiple patients at once.
+  // Body: { treatment_group_guid: string, patient_guids: string[] }
+  http.post(`${API}/bulk-assign-treatment`, async ({ request }) => {
+    const body = await request.json();
+    const { treatment_group_guid, patient_guids } = body;
+
+    const tgIdx = treatmentGroups.findIndex((g) => g.guid === treatment_group_guid);
+    if (tgIdx === -1) return ok({ success: false, error: "treatment group not found" });
+
+    const results = [];
+    for (const patientGuid of patient_guids) {
+      const patient = patients.find((p) => p.guid === patientGuid);
+      if (!patient) continue;
+
+      // Disable previous active treatments for this patient
+      treatments.forEach((t) => { if (t.patient_guid === patientGuid && !t.disabled) t.disabled = true; });
+      patient.patient_treatments.forEach((t) => { t.disabled = true; });
+
+      const newTreatment = {
+        guid: `treat-${Date.now()}-${patientGuid}`,
+        id: Date.now(),
+        name: treatmentGroups[tgIdx].name,
+        disabled: false,
+        started_at: null,
+        patient_guid: patientGuid,
+        research_treatment: 0,
+        is_sham: false,
+        allow_update_electric_current: false,
+        one_session_by_day: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        clinic_clinician: {
+          clinic:    treatmentGroups[tgIdx].clinic ?? { guid: "", name: "" },
+          clinician: { email: "" },
+        },
+      };
+
+      treatments.push(newTreatment);
+      patient.patient_treatments.push({ guid: newTreatment.guid, name: newTreatment.name, disabled: false, started_at: null });
+
+      const alreadyAssigned = treatmentGroups[tgIdx].patient_treatment.some((pt) => pt.patient_guid === patientGuid);
+      if (!alreadyAssigned) {
+        treatmentGroups[tgIdx].patient_treatment.push({
+          patient_id: patient.id,
+          patient_guid: patientGuid,
+          treatment_guid: newTreatment.guid,
+          sessions_by_day: 0,
+          research_treatment: 0,
+        });
+      }
+
+      results.push(newTreatment.guid);
+    }
+
+    return ok({ success: true, assigned: results.length, treatment_guids: results });
+  }),
+
   // Remove a patient from a treatment group.
   // Query params: ?patient=<int>&treatment=<int id of group>
   http.delete(`${API}/remove-patient-treatment-group`, ({ request }) => {

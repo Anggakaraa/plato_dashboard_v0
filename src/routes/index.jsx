@@ -42,6 +42,8 @@ import Treatments from "../pages/Treatments";
 import TreatmentsSteps from "../pages/Treatments/treatment-steps";
 import TreatmentDetails from "../pages/Treatments/Treatment-Details";
 import TreatmentList from "../pages/Treatments/Treatment-List";
+import TreatmentProtocols from "../pages/TreatmentProtocols";
+import TreatmentAssignment from "../pages/TreatmentAssignment";
 import ResourcesPage from "../pages/Resources";
 
 // Gate Pages
@@ -112,6 +114,10 @@ const adminProtectedRoutes = [
     path: "/stimulation/clinic/detail/:guid",
     component: <ClinicStimulationDetail />,
   },
+
+  // V1 — Treatment Management
+  { path: "/treatment-protocols", component: <TreatmentProtocols /> },
+  { path: "/treatment-assignment", component: <TreatmentAssignment /> },
 
   //Resources
   { path: "/resources", component: <ResourcesPage /> },

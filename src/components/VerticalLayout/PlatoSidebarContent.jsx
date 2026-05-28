@@ -146,16 +146,8 @@ const PlatoSidebarContent = (props) => {
       <SimpleBar className="h-100" ref={ref}>
         <div id="sidebar-menu">
           <ul className="metismenu list-unstyled" id="side-menu">
-            {/*<li className="menu-title">{props.t("Dashboard")}</li>
-            <li>
-              <Link to="/#" className=" ">
-                <i className="bx bx-home-circle"></i>
-                <span>{props.t("Dashboard")}</span>
-              </Link>
-            </li>
-            */}
-
-            <li className="menu-title">{props.t("Clinics")}</li>
+            {/* ── User Management ───────────────────────────── */}
+            <li className="menu-title">{props.t("User Management")}</li>
 
             <li>
               <Link to="/clinics" className=" ">
@@ -164,39 +156,9 @@ const PlatoSidebarContent = (props) => {
               </Link>
             </li>
 
-            <li className="menu-title">{props.t("Admins")}</li>
+            {/* ── Treatment Management ──────────────────────── */}
+            <li className="menu-title">{props.t("Treatment Management")}</li>
 
-            <li>
-              <Link to="/users" className=" ">
-                <i className="bx bx-user-circle"></i>
-                <span>{props.t("Admins")}</span>
-              </Link>
-            </li>
-
-            <li>
-              <Link to="/clinicians" className=" ">
-                <i className="mdi mdi-doctor"></i>
-                <span>{props.t("Clinicians")}</span>
-              </Link>
-            </li>
-
-            <li className="menu-title">{props.t("Patients")}</li>
-
-            <li>
-              <Link to="/patients" className="">
-                <i className="bx bx-user"></i>
-                <span>{props.t("Patients")}</span>
-              </Link>
-            </li>
-           
-            <li>
-              <Link to="/treatments-by-steps" className="">
-                <i className="bx bx-clinic"></i>
-                <span>{props.t("Treatments by Group")}</span>
-              </Link>
-            </li>
-
-            <li className="menu-title">{props.t("Stimulations")}</li>
             <li>
               <Link to="/stimulations" className="">
                 <i className="mdi mdi-flash"></i>
@@ -204,17 +166,19 @@ const PlatoSidebarContent = (props) => {
               </Link>
             </li>
 
-            {isSuperAccess() && (
-              <>
-                <li className="menu-title">{props.t("Settings")}</li>
-                <li>
-                  <Link to="/settings/countries" className="">
-                    <i className="mdi mdi-flag"></i>
-                    <span>{props.t("Countries")}</span>
-                  </Link>
-                </li>
-              </>
-            )}
+            <li>
+              <Link to="/treatment-protocols" className="">
+                <i className="bx bx-list-ul"></i>
+                <span>{props.t("Treatment Protocols")}</span>
+              </Link>
+            </li>
+
+            <li>
+              <Link to="/treatment-assignment" className="">
+                <i className="bx bx-transfer"></i>
+                <span>{props.t("Treatment Assignment")}</span>
+              </Link>
+            </li>
 
             {/*<li>
               <Link to="/chat" className="">
