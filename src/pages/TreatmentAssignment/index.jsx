@@ -351,9 +351,8 @@ const TreatmentAssignment = (props) => {
                               cursor: "pointer",
                               backgroundColor: checked ? "#FFF5F8" : undefined,
                             }}
-                            onClick={() => togglePatient(p.guid)}
                           >
-                            <td onClick={(e) => e.stopPropagation()}>
+                            <td>
                               <input
                                 type="checkbox"
                                 checked={checked}

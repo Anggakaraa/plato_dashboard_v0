@@ -70,7 +70,8 @@ const TreatmentProtocols = (props) => {
         Cell: ({ value }) => value,
       },
       {
-        Header: props.t(""),
+        Header: "",
+        id: "actions",
         Cell: ({ row }) => (
           <button
             className="btn btn-primary btn-sm"
