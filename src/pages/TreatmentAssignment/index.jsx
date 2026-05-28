@@ -109,10 +109,10 @@ const TreatmentAssignment = (props) => {
     setSubmitting(true);
     setError(null);
     try {
-      await post(`${baseurl}/bulk-assign-treatment`, true, {
+      await post(`${baseurl}/bulk-assign-treatment`, {
         treatment_group_guid: selectedProtocol.guid,
         patient_guids: selectedPatientGuids,
-      });
+      }, true, {});
       setSuccess(true);
     } catch (e) {
       setError(props.t("Something went wrong. Please try again."));
@@ -316,7 +316,7 @@ const TreatmentAssignment = (props) => {
                     <thead style={{ backgroundColor: "#F9F7F4", position: "sticky", top: 0 }}>
                       <tr>
                         <th style={{ width: 40 }}>
-                          <Input
+                          <input
                             type="checkbox"
                             checked={allFilteredSelected}
                             onChange={toggleAllFiltered}
@@ -354,7 +354,7 @@ const TreatmentAssignment = (props) => {
                             onClick={() => togglePatient(p.guid)}
                           >
                             <td onClick={(e) => e.stopPropagation()}>
-                              <Input
+                              <input
                                 type="checkbox"
                                 checked={checked}
                                 onChange={() => togglePatient(p.guid)}

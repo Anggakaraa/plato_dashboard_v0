@@ -156,6 +156,20 @@ const PlatoSidebarContent = (props) => {
               </Link>
             </li>
 
+            <li>
+              <Link to="/clinicians" className=" ">
+                <i className="mdi mdi-doctor"></i>
+                <span>{props.t("Clinicians")}</span>
+              </Link>
+            </li>
+
+            <li>
+              <Link to="/patients" className="">
+                <i className="bx bx-user"></i>
+                <span>{props.t("Patients")}</span>
+              </Link>
+            </li>
+
             {/* ── Treatment Management ──────────────────────── */}
             <li className="menu-title">{props.t("Treatment Management")}</li>
 
