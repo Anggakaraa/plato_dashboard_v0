@@ -489,16 +489,14 @@ const AllPatients = (props) => {
       {
         key: "type",
         header: props.t("Type"),
-        render: (row) =>
-          row.email?.includes("@platoscience.clinic") ? (
-            <Badge color="primary" className="fs-6">
-              Default
-            </Badge>
+        render: (row) => {
+          const hasAssignment = (row.patient_treatments?.length ?? 0) > 0;
+          return hasAssignment ? (
+            <Badge color="info" className="fs-6">Regular</Badge>
           ) : (
-            <Badge color="info" className="fs-6">
-              Regular
-            </Badge>
-          ),
+            <Badge color="secondary" className="fs-6">Unassigned</Badge>
+          );
+        },
       },
       {
         key: "clinic",
@@ -507,28 +505,16 @@ const AllPatients = (props) => {
       },
       {
         key: "activeTreatments",
-        header: props.t("Active Treatments"),
+        header: props.t("Active Treatment"),
         render: (row) => {
-          if (
-            row.patient_treatments?.some(
-              (t) => !t.disabled && t.started_at !== null,
-            )
-          )
-            return (
-              <Badge color="primary" className="fs-6">
-                Custom
-              </Badge>
-            );
-          if (row.native || row.legacy || row.migrated)
-            return (
-              <Badge color="primary" className="fs-6">
-                Learn/Create
-              </Badge>
-            );
-          return (
-            <Badge color="secondary" className="fs-6">
-              Left/Right
-            </Badge>
+          const active = row.patient_treatments?.find(
+            (t) => !t.disabled && !t.completed
+          );
+          const name = active?.treatment_group?.name ?? active?.name ?? null;
+          return name ? (
+            <Badge color="success" className="fs-6">{name}</Badge>
+          ) : (
+            <span className="text-muted">—</span>
           );
         },
       },
