@@ -103,9 +103,9 @@ export const ORIGINAL_STIMULATIONS = [
   {
     guid: "stim-001",
     id: 1,
-    title: "Alpha Calm",
-    name: "Alpha Calm",
-    short_description: "A gentle protocol to reduce anxiety and promote calm focus.",
+    title: "Stimulation 1",
+    name: "Stimulation 1",
+    short_description: "Gentle low-intensity tDCS — anode left, cathode right, 1.5 mA, 20 min.",
     color: "#4A90D9",
     original: true,
     key: null,
@@ -118,9 +118,9 @@ export const ORIGINAL_STIMULATIONS = [
   {
     guid: "stim-002",
     id: 2,
-    title: "Focus Boost",
-    name: "Focus Boost",
-    short_description: "Enhances concentration and working memory for cognitive tasks.",
+    title: "Stimulation 2",
+    name: "Stimulation 2",
+    short_description: "Medium-intensity tDCS — anode right, cathode left, 2.0 mA, 15 min.",
     color: "#E8A838",
     original: true,
     key: null,
@@ -133,9 +133,9 @@ export const ORIGINAL_STIMULATIONS = [
   {
     guid: "stim-003",
     id: 3,
-    title: "Deep Restore",
-    name: "Deep Restore",
-    short_description: "Low-intensity recovery protocol for post-session restoration.",
+    title: "Stimulation 3",
+    name: "Stimulation 3",
+    short_description: "Low-intensity tDCS — anode bilateral, cathode left, 1.0 mA, 30 min.",
     color: "#57072F",
     original: true,
     key: null,
@@ -148,9 +148,9 @@ export const ORIGINAL_STIMULATIONS = [
   {
     guid: "stim-004",
     id: 4,
-    title: "Energy Reset",
-    name: "Energy Reset",
-    short_description: "Refreshes alertness and counteracts mental fatigue.",
+    title: "Stimulation 4",
+    name: "Stimulation 4",
+    short_description: "Medium-intensity tDCS — anode left, cathode bilateral, 1.5 mA, 25 min.",
     color: "#2A9D6E",
     original: true,
     key: null,
@@ -166,9 +166,9 @@ export const CLINIC_STIMULATIONS = [
   {
     guid: "stim-005",
     id: 5,
-    title: "NeuroWell Relax",
-    name: "NeuroWell Relax",
-    short_description: "Custom NeuroWell protocol for deep relaxation between sessions.",
+    title: "Stimulation 5",
+    name: "Stimulation 5",
+    short_description: "Clinic-custom tDCS — anode right, cathode bilateral, 1.2 mA, 20 min.",
     color: "#89516D",
     original: false,
     key: null,
@@ -182,9 +182,9 @@ export const CLINIC_STIMULATIONS = [
   {
     guid: "stim-006",
     id: 6,
-    title: "MindBridge Focus+",
-    name: "MindBridge Focus+",
-    short_description: "MindBridge enhanced focus protocol with extended duration.",
+    title: "Stimulation 6",
+    name: "Stimulation 6",
+    short_description: "Clinic-custom tDCS — anode left, cathode right, 2.0 mA, 18 min.",
     color: "#053146",
     original: false,
     key: null,
@@ -215,7 +215,11 @@ export const TREATMENT_GROUPS = [
     description: "Anxiety reduction and calm focus protocol using tDCS.",
     clinic_id: 1,
     clinic: { guid: "clinic-001", name: "NeuroWell Sydney", country: "Australia" },
-    interventions: [],
+    interventions: [
+      { guid: "tgiv-001-1", order: 1, stimulation_guid: "stim-001", tes_stimulation: ORIGINAL_STIMULATIONS[0] },
+      { guid: "tgiv-001-2", order: 2, stimulation_guid: "stim-002", tes_stimulation: ORIGINAL_STIMULATIONS[1] },
+      { guid: "tgiv-001-3", order: 3, stimulation_guid: "stim-003", tes_stimulation: ORIGINAL_STIMULATIONS[2] },
+    ],
     patient_treatment: [],
   },
   {
@@ -224,7 +228,10 @@ export const TREATMENT_GROUPS = [
     description: "Cognitive enhancement protocol for concentration and memory.",
     clinic_id: 1,
     clinic: { guid: "clinic-001", name: "NeuroWell Sydney", country: "Australia" },
-    interventions: [],
+    interventions: [
+      { guid: "tgiv-002-1", order: 1, stimulation_guid: "stim-002", tes_stimulation: ORIGINAL_STIMULATIONS[1] },
+      { guid: "tgiv-002-2", order: 2, stimulation_guid: "stim-004", tes_stimulation: ORIGINAL_STIMULATIONS[3] },
+    ],
     patient_treatment: [],
   },
   {
@@ -233,7 +240,11 @@ export const TREATMENT_GROUPS = [
     description: "Low-intensity recovery protocol for post-session restoration.",
     clinic_id: 1,
     clinic: { guid: "clinic-001", name: "NeuroWell Sydney", country: "Australia" },
-    interventions: [],
+    interventions: [
+      { guid: "tgiv-003-1", order: 1, stimulation_guid: "stim-001", tes_stimulation: ORIGINAL_STIMULATIONS[0] },
+      { guid: "tgiv-003-2", order: 2, stimulation_guid: "stim-003", tes_stimulation: ORIGINAL_STIMULATIONS[2] },
+      { guid: "tgiv-003-3", order: 3, stimulation_guid: "stim-005", tes_stimulation: CLINIC_STIMULATIONS[0] },
+    ],
     patient_treatment: [],
   },
   {
@@ -242,16 +253,23 @@ export const TREATMENT_GROUPS = [
     description: "Standard MindBridge neurostimulation protocol.",
     clinic_id: 2,
     clinic: { guid: "clinic-002", name: "MindBridge Melbourne", country: "Australia" },
-    interventions: [],
+    interventions: [
+      { guid: "tgiv-004-1", order: 1, stimulation_guid: "stim-002", tes_stimulation: ORIGINAL_STIMULATIONS[1] },
+      { guid: "tgiv-004-2", order: 2, stimulation_guid: "stim-004", tes_stimulation: ORIGINAL_STIMULATIONS[3] },
+    ],
     patient_treatment: [],
   },
   {
     guid: "tg-005", id: 5,
-    name: "MindBridge Focus+",
-    description: "Enhanced focus protocol with extended duration.",
+    name: "MindBridge Intensive",
+    description: "Extended focus protocol with clinic-custom stimulation for MindBridge Melbourne.",
     clinic_id: 2,
     clinic: { guid: "clinic-002", name: "MindBridge Melbourne", country: "Australia" },
-    interventions: [],
+    interventions: [
+      { guid: "tgiv-005-1", order: 1, stimulation_guid: "stim-005", tes_stimulation: CLINIC_STIMULATIONS[0] },
+      { guid: "tgiv-005-2", order: 2, stimulation_guid: "stim-001", tes_stimulation: ORIGINAL_STIMULATIONS[0] },
+      { guid: "tgiv-005-3", order: 3, stimulation_guid: "stim-006", tes_stimulation: CLINIC_STIMULATIONS[1] },
+    ],
     patient_treatment: [],
   },
 ];
@@ -372,6 +390,15 @@ export const PATIENTS = [
   makePatient("pat-008", 8,  "Chloe Tan",      "chloe.tan@gmail.com",       "clinic-002", "MindBridge Melbourne", "cln-002"),
   makePatient("pat-009", 9,  "Ryan Patel",     "ryan.patel@gmail.com",      "clinic-002", "MindBridge Melbourne", "cln-002"),
   makePatient("pat-010", 10, "Isla Grant",     "mbm001@platoscience.clinic","clinic-002", "MindBridge Melbourne", "cln-002"),
+
+  // NeuroWell Sydney — extra slots (page 2 seed)
+  makePatient("pat-011", 11, "Lucas White",    "nws002@platoscience.clinic","clinic-001", "NeuroWell Sydney",     "cln-001"),
+  makePatient("pat-012", 12, "Sophie Adams",   "nws003@platoscience.clinic","clinic-001", "NeuroWell Sydney",     "cln-001"),
+  makePatient("pat-013", 13, "Oliver Chen",    "oliver.chen@gmail.com",     "clinic-001", "NeuroWell Sydney",     "cln-001"),
+
+  // MindBridge Melbourne — extra slots (page 2 seed)
+  makePatient("pat-014", 14, "Emma Wilson",    "mbm002@platoscience.clinic","clinic-002", "MindBridge Melbourne", "cln-002"),
+  makePatient("pat-015", 15, "Noah Brown",     "noah.brown@gmail.com",      "clinic-002", "MindBridge Melbourne", "cln-002"),
 ];
 
 // ─── LOOKUP HELPERS ───────────────────────────────────────────────────────────

@@ -79,7 +79,7 @@ const Dashboard = props => {
   }, [dispatch]);
 
   //meta title
-  document.title="Dashboard | PlatoScience - Vite React Admin & Dashboard Template";
+  document.title="Dashboard | Platoscience";
 
   return (
     <React.Fragment>

@@ -76,7 +76,7 @@ const buildCsvBlob = (patients) => {
   const rows = patients.map((item) => ({
     Name: item.name || "",
     Email: item.email || "",
-    Type: item.email?.includes("@plato.dashboard") ? "Default" : "Regular",
+    Type: item.email?.includes("@platoscience.clinic") ? "Default" : "Regular",
     Clinic: item.clinic_patients?.[0]?.clinic?.name || "N/A",
     AppCredential: item.patient_mobile_accesses?.[0]?.credential || "123456",
     Disable: item.disabled ? "Yes" : "No",

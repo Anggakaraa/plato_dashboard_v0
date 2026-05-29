@@ -38,7 +38,8 @@ const success = () => ok({ success: true });
 const paginate = (items, page = 1, limit = 10) => {
   const total = items.length;
   const data = items.slice((page - 1) * limit, page * limit);
-  return { data, pagination: { total, page: Number(page), limit: Number(limit), pages: Math.ceil(total / limit) } };
+  const totalPages = Math.ceil(total / limit);
+  return { data, pagination: { total, page: Number(page), limit: Number(limit), totalPages } };
 };
 
 // Build the clinician_clinics format the app expects:
@@ -397,10 +398,10 @@ export const handlers = [
 
   // ── CLINIC STIMULATIONS ───────────────────────────────────────────────────
   http.get(`${API}/clinic-stimulations`, ({ request }) => {
-    const clinicGuid = new URL(request.url).searchParams.get("clinic");
+    // Always return ALL stimulations regardless of clinic — every clinic can use every stim
     return ok({
       original: originalStims,
-      clinic: clinicGuid ? clinicStims.filter((s) => s.clinic_id === clinicGuid) : clinicStims,
+      clinic: clinicStims,
     });
   }),
 
@@ -578,6 +579,22 @@ export const handlers = [
     if (idx !== -1) {
       if (body.name) treatmentGroups[idx].name = body.name;
       if (body.description !== undefined) treatmentGroups[idx].description = body.description;
+      // Persist stimulations as interventions when provided
+      if (body.stimulations) {
+        const allStims = [...originalStims, ...clinicStims];
+        treatmentGroups[idx].interventions = body.stimulations
+          .map((s, i) => {
+            const stim = allStims.find((st) => st.guid === (s.guid ?? s));
+            if (!stim) return null;
+            return {
+              guid: `tgiv-${body.guid}-${i}-${Date.now()}`,
+              order: i + 1,
+              stimulation_guid: stim.guid,
+              tes_stimulation: stim,
+            };
+          })
+          .filter(Boolean);
+      }
     }
     return success();
   }),
@@ -597,8 +614,8 @@ export const handlers = [
   // ── TREATMENT GROUPS (treatment templates / protocols) ───────────────────
   // List view — /treatments-by-steps. clinic_id is integer (matches clinic.id).
   http.get(`${API}/treatments-group`, () =>
-    ok(treatmentGroups.map(({ guid, name, description, clinic_id }) => ({
-      guid, name, description, clinic_id,
+    ok(treatmentGroups.map(({ guid, name, description, clinic_id, interventions }) => ({
+      guid, name, description, clinic_id, interventions: interventions ?? [],
     })))
   ),
 
@@ -610,11 +627,24 @@ export const handlers = [
 
   http.post(`${API}/treatments-group`, async ({ request }) => {
     const body = await request.json();
+    const allStims = [...originalStims, ...clinicStims];
+    const interventions = (body.stimulations ?? [])
+      .map((s, i) => {
+        const stim = allStims.find((st) => st.guid === (s.guid ?? s));
+        if (!stim) return null;
+        return {
+          guid: `tgiv-new-${i}-${Date.now()}`,
+          order: i + 1,
+          stimulation_guid: stim.guid,
+          tes_stimulation: stim,
+        };
+      })
+      .filter(Boolean);
     const newGroup = {
       ...body,
       guid: `tg-${Date.now()}`,
       id: Date.now(),
-      interventions: [],
+      interventions,
       patient_treatment: [],
     };
     treatmentGroups.push(newGroup);
@@ -745,6 +775,26 @@ export const handlers = [
     }
 
     return ok({ success: true, assigned: results.length, treatment_guids: results });
+  }),
+
+  // Bulk-unassign — remove active treatments from multiple patients at once.
+  // Body: { patient_guids: string[] }
+  http.post(`${API}/bulk-unassign-treatment`, async ({ request }) => {
+    const body = await request.json();
+    const { patient_guids } = body;
+    let count = 0;
+    for (const patientGuid of patient_guids) {
+      const patient = patients.find((p) => p.guid === patientGuid);
+      if (!patient) continue;
+      treatments.forEach((t) => { if (t.patient_guid === patientGuid && !t.disabled) t.disabled = true; });
+      patient.patient_treatments.forEach((t) => { t.disabled = true; });
+      // Remove from all treatment group patient_treatment tracking
+      treatmentGroups.forEach((tg) => {
+        tg.patient_treatment = tg.patient_treatment.filter((pt) => pt.patient_guid !== patientGuid);
+      });
+      count++;
+    }
+    return ok({ success: true, removed: count });
   }),
 
   // Remove a patient from a treatment group.

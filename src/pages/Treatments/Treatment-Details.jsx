@@ -25,7 +25,7 @@ import {
 } from "reactstrap"
 
 import classnames from "classnames"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import PropTypes from "prop-types";
 
 //Import Breadcrumb
@@ -40,7 +40,8 @@ import { get, post } from "../../api/manager";
 const TreatmentSteps = (props) => {
 
   //meta title
-  document.title = "Treatment Steps | Plato Dashboard";
+  document.title = "Edit Protocol | Plato Dashboard";
+  const navigate = useNavigate();
   const treatmentId = window.location.pathname.split("/").pop()
   const baseurl = (import.meta).env.VITE_APP_API_URL;
 
@@ -123,7 +124,8 @@ const TreatmentSteps = (props) => {
     if (interventions.length > 0 && clinic_stimulations.length > 0) {
       const data = []
       interventions.map((intervention) => {
-        data.push(intervention.tes_stimulation)
+        // Mark as selected: true so the save filter works correctly
+        data.push({ ...intervention.tes_stimulation, selected: true })
         clinic_stimulations.map((stimulation) => {
           if (intervention.tes_stimulation.guid === stimulation.guid) {
             const element = document.getElementById(`customSwitch-${stimulation.guid}`)
@@ -468,10 +470,10 @@ const TreatmentSteps = (props) => {
         guid: treatmentId,
         name: values.treatmentName,
         description: values.treatmentDetails,
-        stimulations: filtered.map((s) => s.guid),
+        stimulations: filtered.map((s) => s.guid ?? s),
       };
       await post(`${baseurl}/treatments-group/update`, data, true, {});
-      handlerMessage("Protocol saved successfully");
+      navigate('/treatments-by-steps');
     },
   });
 
@@ -555,7 +557,7 @@ const TreatmentSteps = (props) => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid={true}>
-          <Breadcrumbs title="Patients" breadcrumbItem="Treatments" />
+          <Breadcrumbs title="Treatment Management" breadcrumbItem="Edit Protocol" />
           <Row>
             <Col lg="12">
               <Card>

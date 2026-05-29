@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 
 import { withTranslation } from "react-i18next";
 import {
+  Badge,
   Card,
   CardBody,
   Col,
@@ -22,7 +23,7 @@ const TreatmentList = (props) => {
   const navigate = useNavigate();
 
   //meta title
-  document.title = "Treatment Steps | Plato Dashboard";
+  document.title = "Treatment Protocols | Plato Dashboard";
 
   const [treatments, setTreatments] = useState([]);
   const { clinics, loading } = useSelector((state) => ({
@@ -86,8 +87,25 @@ const TreatmentList = (props) => {
         },
       },
       {
+        Header: props.t("Stimulations"),
+        id: "stimulations",
+        Cell: (cellProps) => {
+          const stims = cellProps.row.original.interventions ?? [];
+          if (stims.length === 0) return <span className="text-muted">—</span>;
+          return (
+            <div className="d-flex flex-wrap gap-1">
+              {stims.map((iv) => (
+                <Badge key={iv.guid} color="light" className="text-dark border">
+                  {iv.tes_stimulation?.name ?? iv.stimulation_guid}
+                </Badge>
+              ))}
+            </div>
+          );
+        },
+      },
+      {
         Header: props.t("Details"),
-        
+        id: "details",
         Cell: (cellProps) => {
           const item = cellProps.row.original;
           return (
@@ -133,8 +151,8 @@ const TreatmentList = (props) => {
       <div className="page-content">
         <Container fluid>
           <Breadcrumbs
-            title={props.t("Patients")}
-            breadcrumbItem={props.t("Treatment List")}
+            title={props.t("Treatment Management")}
+            breadcrumbItem={props.t("Treatment Protocols")}
           />
           <Card>
             <CardBody>
@@ -148,6 +166,8 @@ const TreatmentList = (props) => {
                 }}
                 customPageSize={10}
                 className="custom-header-css"
+                emptyStateTitle={props.t("No treatment protocols yet")}
+                emptyStateMessage={props.t("Create your first protocol to start assigning treatments to patients.")}
               />
             </CardBody>
           </Card>

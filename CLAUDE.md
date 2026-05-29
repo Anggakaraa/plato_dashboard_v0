@@ -61,17 +61,30 @@ Work in this sequence:
 - [ ] Clinic Detail page — tabbed layout (Clinicians tab + Patients tab)
 - [ ] Wire bulk patient slot creation into Patients tab
 
-#### Phase 3 — Treatment Management
-- [ ] Stimulations page (minor restructure, keep mostly as-is)
-- [ ] Treatment Protocols page — renamed, edit removes patient assignment
-- [ ] Treatment Assignment page (new — the most important new build)
-  - Step 1: Select protocol
-  - Step 2: Select patients (filterable, multi-select, select-all)
-  - Step 3: Review + single confirm
+#### Phase 3 — Treatment Management ✅
+- ✅ Stimulations renamed to Stimulation 1–6 (descriptive names removed to avoid confusion)
+- ✅ Treatment Protocols page — renamed (was "Treatment Steps"), stimulations column added, breadcrumbs fixed
+- ✅ Treatment Protocol edit — redirect to list after save, stimulations persist correctly
+- ✅ Treatment Assignment page — completely rebuilt as patient-first 4-step wizard:
+  - Step 1: Choose Clinic
+  - Step 2: Select patients (multi-select, shows active treatment)
+  - Step 3: Choose action (Assign to Protocol / Remove Treatment)
+  - Step 4: Review + Confirm
+- ✅ Bulk assign and bulk unassign MSW handlers
+- ✅ Post-assignment "View Patients" button + Redux patient list refresh
 
-#### Phase 4 — Patient Detail cleanup
-- [ ] Remove treatment creation from patient dashboard
-- [ ] Patient page becomes read-only for treatment (shows active treatment only)
+#### Phase 4 — Patient Detail cleanup ✅
+- ✅ All treatment creation UI removed from AdminPatientDetail (1649 → ~280 lines)
+- ✅ Patient page shows active treatment callout (read-only)
+- ✅ "Manage via Treatment Assignment" button navigates to assignment page
+
+#### UX polish (completed in-session)
+- ✅ Dashboard title fixed ("Platoscience" instead of template name)
+- ✅ Treatment Protocols breadcrumb: "Treatment Management > Treatment Protocols"
+- ✅ Edit Protocol breadcrumb: "Treatment Management > Edit Protocol"
+- ✅ Empty state on Treatment Protocols list
+- ✅ Pagination fix (totalPages key mismatch)
+- ✅ 15 seed patients across 2 clinics for testable pagination
 
 ---
 
