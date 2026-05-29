@@ -28,6 +28,5 @@ if (import.meta.env.VITE_ENV === 'mock') {
   });
 } else {
   render();
+  serviceWorker.unregister()
 }
-
-serviceWorker.unregister()

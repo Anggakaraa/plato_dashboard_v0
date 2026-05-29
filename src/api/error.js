@@ -119,7 +119,11 @@ const DBErrors = {
 };
 
 const getErrorMessage = (t, error) => {
-    if (!error || !error.response || !error.response.data || !error.response.data.error) return null;
+    if (!error) return t("Unknown server error");
+    if (!error.response) {
+        return t("Cannot reach the API. Check that mock mode or the backend is running.");
+    }
+    if (!error.response.data || !error.response.data.error) return t("Unknown server error");
     console.log("API Error: ", error);
     let type = error.response.data.error;
     let message = t("Unknown server error");
