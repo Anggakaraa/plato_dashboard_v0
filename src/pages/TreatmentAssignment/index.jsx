@@ -88,6 +88,12 @@ const TreatmentAssignment = (props) => {
   const [filterSearch, setFilterSearch] = useState("");
   const [selectedGuids, setSelectedGuids] = useState([]);
 
+  // Step 2 — CSV upload
+  const [inputMode, setInputMode] = useState("manual"); // "manual" | "csv"
+  const [csvMatched, setCsvMatched] = useState([]);     // emails that matched a patient
+  const [csvUnmatched, setCsvUnmatched] = useState([]); // emails that didn't match
+  const [csvFileName, setCsvFileName] = useState(null);
+
   // Step 3
   const [action, setAction] = useState(null); // "assign" | "remove"
   const [protocols, setProtocols] = useState([]);
@@ -118,6 +124,10 @@ const TreatmentAssignment = (props) => {
       });
     setSelectedGuids([]);
     setFilterSearch("");
+    setInputMode("manual");
+    setCsvMatched([]);
+    setCsvUnmatched([]);
+    setCsvFileName(null);
   }, [selectedClinic]);
 
   // ── Derived ───────────────────────────────────────────────────────────────
@@ -147,6 +157,46 @@ const TreatmentAssignment = (props) => {
     } else {
       setSelectedGuids((prev) => [...new Set([...prev, ...guids])]);
     }
+  };
+
+  // ── CSV upload ────────────────────────────────────────────────────────────
+  const handleCsvUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCsvFileName(file.name);
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const text = evt.target.result;
+      // Parse: strip header row if it says "email", then collect non-empty values
+      const rows = text
+        .split(/\r?\n/)
+        .map((r) => r.trim().toLowerCase())
+        .filter((r) => r && r !== "email");
+
+      const matched = [];
+      const unmatched = [];
+
+      rows.forEach((email) => {
+        const patient = allPatients.find((p) => p.email?.toLowerCase() === email);
+        if (patient) matched.push(patient);
+        else unmatched.push(email);
+      });
+
+      setCsvMatched(matched);
+      setCsvUnmatched(unmatched);
+      setSelectedGuids(matched.map((p) => p.guid));
+    };
+    reader.readAsText(file);
+    // Reset the input so the same file can be re-uploaded
+    e.target.value = "";
+  };
+
+  const handleClearCsv = () => {
+    setCsvMatched([]);
+    setCsvUnmatched([]);
+    setCsvFileName(null);
+    setSelectedGuids([]);
   };
 
   // ── Confirm ───────────────────────────────────────────────────────────────
@@ -180,6 +230,10 @@ const TreatmentAssignment = (props) => {
     setSelectedClinic(null);
     setSelectedGuids([]);
     setFilterSearch("");
+    setInputMode("manual");
+    setCsvMatched([]);
+    setCsvUnmatched([]);
+    setCsvFileName(null);
     setAction(null);
     setSelectedProtocol(null);
     setSuccess(false);
@@ -245,89 +299,225 @@ const TreatmentAssignment = (props) => {
                   {props.t("Clinic")}: <strong>{selectedClinic?.name}</strong>
                 </p>
 
-                <Row className="mb-3 g-2 align-items-center">
-                  <Col md={5}>
-                    <Input
-                      type="text"
-                      placeholder={props.t("Search name or email...")}
-                      value={filterSearch}
-                      onChange={(e) => setFilterSearch(e.target.value)}
-                    />
-                  </Col>
-                  <Col className="text-muted small">
-                    {selectedGuids.length > 0 && (
-                      <>
-                        <strong>{selectedGuids.length}</strong> {props.t("selected")}
-                        <button className="btn btn-link btn-sm p-0 ms-2" onClick={() => setSelectedGuids([])}>
-                          {props.t("Clear")}
-                        </button>
-                      </>
-                    )}
-                  </Col>
-                </Row>
+                {/* ── Input mode toggle ── */}
+                <div className="d-flex gap-2 mb-4">
+                  <button
+                    className={`btn btn-sm ${inputMode === "manual" ? "btn-primary" : "btn-outline-secondary"}`}
+                    onClick={() => { setInputMode("manual"); handleClearCsv(); }}
+                  >
+                    <i className="bx bx-list-ul me-1" />
+                    {props.t("Select Manually")}
+                  </button>
+                  <button
+                    className={`btn btn-sm ${inputMode === "csv" ? "btn-primary" : "btn-outline-secondary"}`}
+                    onClick={() => { setInputMode("csv"); setSelectedGuids([]); setFilterSearch(""); }}
+                  >
+                    <i className="bx bx-upload me-1" />
+                    {props.t("Upload CSV")}
+                  </button>
+                </div>
 
-                <div style={{ maxHeight: 420, overflowY: "auto" }}>
-                  <Table responsive hover className="mb-0">
-                    <thead style={{ ...infoBox, position: "sticky", top: 0 }}>
-                      <tr>
-                        <th style={{ width: 40 }}>
-                          <input
-                            type="checkbox"
-                            checked={allFilteredSelected}
-                            onChange={() => {}}
-                            onClick={(e) => { e.stopPropagation(); toggleAllFiltered(); }}
-                            title={props.t("Select all")}
-                          />
-                        </th>
-                        <th>{props.t("Name")}</th>
-                        <th>{props.t("Email")}</th>
-                        <th>{props.t("Active Treatment")}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredPatients.length === 0 && (
-                        <tr>
-                          <td colSpan={4} className="text-center text-muted py-4">
-                            {allPatients.length === 0
-                              ? props.t("No patients found for this clinic")
-                              : props.t("No results match your search")}
-                          </td>
-                        </tr>
-                      )}
-                      {filteredPatients.map((p) => {
-                        const checked = selectedGuids.includes(p.guid);
-                        const treatment = activeTreatmentName(p);
-                        return (
-                          <tr
-                            key={p.guid}
-                            style={{ cursor: "pointer", backgroundColor: checked ? "#FFF5F8" : undefined }}
-                            onClick={() => togglePatient(p.guid)}
-                          >
-                            <td onClick={(e) => e.stopPropagation()}>
+                {/* ── Manual selection ── */}
+                {inputMode === "manual" && (
+                  <>
+                    <Row className="mb-3 g-2 align-items-center">
+                      <Col md={5}>
+                        <Input
+                          type="text"
+                          placeholder={props.t("Search name or email...")}
+                          value={filterSearch}
+                          onChange={(e) => setFilterSearch(e.target.value)}
+                        />
+                      </Col>
+                      <Col className="text-muted small">
+                        {selectedGuids.length > 0 && (
+                          <>
+                            <strong>{selectedGuids.length}</strong> {props.t("selected")}
+                            <button className="btn btn-link btn-sm p-0 ms-2" onClick={() => setSelectedGuids([])}>
+                              {props.t("Clear")}
+                            </button>
+                          </>
+                        )}
+                      </Col>
+                    </Row>
+
+                    <div style={{ maxHeight: 420, overflowY: "auto" }}>
+                      <Table responsive hover className="mb-0">
+                        <thead style={{ ...infoBox, position: "sticky", top: 0 }}>
+                          <tr>
+                            <th style={{ width: 40 }}>
                               <input
                                 type="checkbox"
-                                checked={checked}
+                                checked={allFilteredSelected}
                                 onChange={() => {}}
-                                onClick={(e) => { e.stopPropagation(); togglePatient(p.guid); }}
+                                onClick={(e) => { e.stopPropagation(); toggleAllFiltered(); }}
+                                title={props.t("Select all")}
                               />
-                            </td>
-                            <td>{p.name}</td>
-                            <td className="text-muted small">{p.email}</td>
-                            <td>
-                              {treatment ? (
-                                <Badge style={{ backgroundColor: "#EAE4DA", color: "#57072F", fontWeight: 500 }}>
-                                  {treatment}
-                                </Badge>
-                              ) : (
-                                <span className="text-muted small">{props.t("None")}</span>
-                              )}
-                            </td>
+                            </th>
+                            <th>{props.t("Name")}</th>
+                            <th>{props.t("Email")}</th>
+                            <th>{props.t("Active Treatment")}</th>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                  </Table>
-                </div>
+                        </thead>
+                        <tbody>
+                          {filteredPatients.length === 0 && (
+                            <tr>
+                              <td colSpan={4} className="text-center text-muted py-4">
+                                {allPatients.length === 0
+                                  ? props.t("No patients found for this clinic")
+                                  : props.t("No results match your search")}
+                              </td>
+                            </tr>
+                          )}
+                          {filteredPatients.map((p) => {
+                            const checked = selectedGuids.includes(p.guid);
+                            const treatment = activeTreatmentName(p);
+                            return (
+                              <tr
+                                key={p.guid}
+                                style={{ cursor: "pointer", backgroundColor: checked ? "#FFF5F8" : undefined }}
+                                onClick={() => togglePatient(p.guid)}
+                              >
+                                <td onClick={(e) => e.stopPropagation()}>
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={() => {}}
+                                    onClick={(e) => { e.stopPropagation(); togglePatient(p.guid); }}
+                                  />
+                                </td>
+                                <td>{p.name}</td>
+                                <td className="text-muted small">{p.email}</td>
+                                <td>
+                                  {treatment ? (
+                                    <Badge style={{ backgroundColor: "#EAE4DA", color: "#57072F", fontWeight: 500 }}>
+                                      {treatment}
+                                    </Badge>
+                                  ) : (
+                                    <span className="text-muted small">{props.t("None")}</span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </Table>
+                    </div>
+                  </>
+                )}
+
+                {/* ── CSV upload ── */}
+                {inputMode === "csv" && (
+                  <>
+                    {/* Drop zone / file picker */}
+                    {!csvFileName && (
+                      <div
+                        className="p-5 rounded text-center mb-3"
+                        style={{ border: "2px dashed #EAE4DA", backgroundColor: "#F9F7F4", cursor: "pointer" }}
+                        onClick={() => document.getElementById("csv-upload-input").click()}
+                      >
+                        <i className="bx bx-cloud-upload" style={{ fontSize: 36, color: "#57072F" }} />
+                        <p className="mb-1 fw-semibold mt-2">{props.t("Click to upload a CSV file")}</p>
+                        <p className="text-muted small mb-0">
+                          {props.t("One patient email per row. First row can be a header.")}
+                        </p>
+                        <input
+                          id="csv-upload-input"
+                          type="file"
+                          accept=".csv,text/csv"
+                          style={{ display: "none" }}
+                          onChange={handleCsvUpload}
+                        />
+                      </div>
+                    )}
+
+                    {/* Results after upload */}
+                    {csvFileName && (
+                      <>
+                        <div className="p-3 rounded mb-3 d-flex align-items-center justify-content-between" style={infoBox}>
+                          <div>
+                            <i className="bx bx-file me-2" style={{ color: "#57072F" }} />
+                            <strong>{csvFileName}</strong>
+                            <span className="text-muted small ms-2">
+                              {csvMatched.length} matched · {csvUnmatched.length} not found
+                            </span>
+                          </div>
+                          <button className="btn btn-link btn-sm p-0 text-danger" onClick={handleClearCsv}>
+                            {props.t("Remove")}
+                          </button>
+                        </div>
+
+                        {/* Matched patients */}
+                        {csvMatched.length > 0 && (
+                          <div className="mb-3">
+                            <p className="small fw-semibold mb-2" style={{ color: "#57072F" }}>
+                              <i className="bx bx-check-circle me-1" />
+                              {csvMatched.length} {props.t("patients matched")}
+                            </p>
+                            <div style={{ maxHeight: 240, overflowY: "auto" }}>
+                              <Table responsive size="sm" className="mb-0">
+                                <thead style={infoBox}>
+                                  <tr>
+                                    <th>{props.t("Name")}</th>
+                                    <th>{props.t("Email")}</th>
+                                    <th>{props.t("Active Treatment")}</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {csvMatched.map((p) => {
+                                    const treatment = activeTreatmentName(p);
+                                    return (
+                                      <tr key={p.guid}>
+                                        <td>{p.name}</td>
+                                        <td className="text-muted small">{p.email}</td>
+                                        <td>
+                                          {treatment ? (
+                                            <Badge style={{ backgroundColor: "#EAE4DA", color: "#57072F", fontWeight: 500 }}>
+                                              {treatment}
+                                            </Badge>
+                                          ) : (
+                                            <span className="text-muted small">{props.t("None")}</span>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </Table>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Unmatched emails */}
+                        {csvUnmatched.length > 0 && (
+                          <div
+                            className="p-3 rounded"
+                            style={{ backgroundColor: "#fff4f4", border: "1px solid #f5c6cb" }}
+                          >
+                            <p className="small fw-semibold mb-2" style={{ color: "#721c24" }}>
+                              <i className="bx bx-error-circle me-1" />
+                              {csvUnmatched.length} {props.t("emails not found in this clinic")}
+                            </p>
+                            <div className="d-flex flex-wrap gap-1">
+                              {csvUnmatched.map((email) => (
+                                <span
+                                  key={email}
+                                  className="px-2 py-1 rounded small"
+                                  style={{ backgroundColor: "#f8d7da", color: "#721c24" }}
+                                >
+                                  {email}
+                                </span>
+                              ))}
+                            </div>
+                            <p className="small text-muted mt-2 mb-0">
+                              {props.t("These will be skipped. Check the email addresses or confirm the patient belongs to this clinic.")}
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </>
+                )}
 
                 <div className="mt-4 d-flex justify-content-between">
                   <Button color="secondary" outline onClick={() => setStep(1)}>
