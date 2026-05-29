@@ -104,25 +104,17 @@ const TreatmentList = (props) => {
         },
       },
       {
-        Header: props.t("Details"),
+        Header: props.t("Manage Protocol"),
         id: "details",
         Cell: (cellProps) => {
           const item = cellProps.row.original;
           return (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}>
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={() => {
-                  navigate(`/treatments-by-steps/details/${item.guid}`);
-                }}
-              >
-                <i className="fas fa-list"></i>
-              </button>
+            <div className="text-center">
+              <i
+                className="bx bx-chevron-right font-size-18"
+                style={{ cursor: "pointer", color: "#57072F" }}
+                onClick={() => navigate(`/treatments-by-steps/details/${item.guid}`)}
+              />
             </div>
           );
         },

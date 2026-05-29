@@ -232,17 +232,18 @@ const Clinic = (props) => {
         },
       },
       {
-        Header: "",
+        Header: props.t("View Detail"),
         id: "view_detail",
         Cell: (cellProps) => {
           const item = cellProps.row.original;
           return (
-            <button
-              className="btn btn-primary btn-sm"
-              onClick={() => navigate(`/clinics/detail/${item.guid}`)}
-            >
-              {props.t("View Detail")}
-            </button>
+            <div className="text-center">
+              <i
+                className="bx bx-chevron-right font-size-18"
+                style={{ cursor: "pointer", color: "#57072F" }}
+                onClick={() => navigate(`/clinics/detail/${item.guid}`)}
+              />
+            </div>
           );
         },
       },
