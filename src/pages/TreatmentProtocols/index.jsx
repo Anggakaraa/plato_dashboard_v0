@@ -70,17 +70,16 @@ const TreatmentProtocols = (props) => {
         Cell: ({ value }) => value,
       },
       {
-        Header: "",
+        Header: props.t("Manage Protocol"),
         id: "actions",
         Cell: ({ row }) => (
-          <button
-            className="btn btn-primary btn-sm"
-            onClick={() =>
-              navigate(`/treatments-by-steps/details/${row.original.guid}`)
-            }
-          >
-            {props.t("Edit Protocol")}
-          </button>
+          <div className="text-center">
+            <i
+              className="bx bx-chevron-right font-size-18"
+              style={{ cursor: "pointer", color: "#57072F" }}
+              onClick={() => navigate(`/treatments-by-steps/details/${row.original.guid}`)}
+            />
+          </div>
         ),
       },
     ],
