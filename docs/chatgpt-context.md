@@ -1,6 +1,6 @@
 # PlatoScience Dashboard - ChatGPT Strategic Context
 
-Last refreshed: 2026-05-29
+Last refreshed: 2026-06-02
 Primary branch for Torbjorn's work: `v1-torbjorn`
 Repository: `https://github.com/Anggakaraa/plato_dashboard_v0`
 Local path: `/Users/torbjornaksdal/Documents/Claude/Claude Code/Plato Dashboard/plato_dashboard_v0`
@@ -202,26 +202,61 @@ Treatment signature direction:
 - if values are consistent, show the single value; if values differ, show mixed or range states such as `Mixed current`, `20-30 min`, `Includes sham`, or `Mixed montages`
 - include at least one mock treatment with mixed parameters when the prototype is planned, so the summary logic can be tested
 
-Patient-centered Treatment Assignment prototype implementation:
+Patient-centered Treatment Assignment prototype implementation (current state as of 2026-06-02):
 
 - prototype route: `/treatment-assignment`
 - route registered in `src/routes/index.jsx`
-- sidebar link added in `src/components/VerticalLayout/PlatoSidebarContent.jsx`
-- page implementation lives in `src/pages/Treatments/TreatmentAssignment/index.jsx`
-- treatment signature helper lives in `src/util/treatment-signature.js`
-- scoped styling lives in `src/assets/scss/custom/pages/_treatment-assignment.scss` and is imported from `src/assets/scss/app.scss`
-- mock data changes live in `src/mocks/data.js`, including seeded active treatments, no-active-treatment patients, clinic-specific treatment groups, and one mixed-parameter treatment group
-- mock API behavior lives in `src/mocks/handlers.js`
-- mock batch endpoint: `POST /bulk-assign-treatment`
-- endpoint body shape: `{ "treatment_group_guid": "tg-001", "patient_guids": ["pat-001", "pat-002"] }`
-- mock endpoint disables previous active treatment records, appends a new active treatment record, updates the selected patients, and returns updated patient objects
-- prototype deliberately uses local page state and direct API calls instead of adding Redux/Saga actions
-- selection copy is intentionally limited to visible rows: `Select visible patients`, `Clear selection`, and `[n] visible patients selected`
-- known limitation: the prototype assigns only patients loaded and visible in the frontend; it does not implement server-side "select all filtered patients"
-- known limitation: preservation of treatment history is represented in MSW mock state only; the real backend behavior still needs confirmation
-- known limitation: treatment signatures are derived from mock treatment-group interventions and may need adjustment when real backend payloads are confirmed
-- follow-up backend questions: confirm active-treatment data model, confirm whether a batch assignment endpoint exists, confirm how historical treatment records are preserved, confirm whether backend can support server-side filtered selection, and confirm whether real treatment groups expose enough stimulation data for signatures
-- Google Doc mirror has not been updated for this implementation unless explicitly requested later
+- sidebar link in `src/components/VerticalLayout/PlatoSidebarContent.jsx`
+- page implementation: `src/pages/TreatmentAssignment/index.jsx`
+- treatment signature utility: `src/util/treatment-signature.js`
+- mock data: `src/mocks/data.js` — deterministic seeder with `VITE_MOCK_SEED_PRESET=small|large|stress`
+- mock API: `src/mocks/handlers.js`
+
+Patient loading (implemented):
+- server-side paginated: `GET /plato/patients?clinic_guid=...&page=N&limit=50&search=...`
+- PAGE_SIZE is 50; debounced search triggers a new server call
+- table header shows "Showing N of Total patients"
+- pagination controls navigate between pages
+
+Selection modes (implemented):
+- `"none"` — nothing selected
+- `"explicit"` — individual checkboxes checked; may span pages; label is `"N patients selected"` (never says "visible")
+- `"all-matching"` — all active (non-disabled) patients matching current clinic + search filter; label is `"All N active patients in [Clinic] selected"`
+- "Select all matching" banner appears when all rows on current page are selected but total > selected count
+- clicking banner calls `GET /plato/patients/ids` to fetch all matching guids + summary metadata
+
+Disabled patients:
+- rendered in table (greyed row, disabled checkbox)
+- not selectable; excluded from all-matching selection and from `/ids` results
+- shown as `disabledCount` in `/ids` response (informational only)
+
+Protocol picker:
+- `react-select` searchable dropdown (already installed, used in Ecommerce pages)
+- treatment signature shown below selected protocol: `"5 stimulations · 1.6 mA · 30 min · Slide on · Not sham · L/R variants"`
+- option-level signatures not yet shown in dropdown list (future enhancement)
+
+Confirmation modal:
+- for explicit mode: shows patient count + replacement warning from known/cached patient objects
+- for all-matching mode: shows clinic name, search term, activeTreatmentCount, noTreatmentCount, disabledCount from `/ids` response; shows scope note "applies to all matching patients, not only those visible"
+
+MSW endpoints relevant to this flow:
+- `GET /plato/patients` — paginated, clinic-filtered, searchable ✅
+- `GET /plato/patients/ids` — guid list + summary metadata (MSW prototype bridge only) ✅
+- `POST /bulk-assign-treatment` — `{ treatment_group_guid, patient_guids }` ✅
+- `POST /bulk-unassign-treatment` — `{ patient_guids }` ✅
+
+Known limitations:
+- `GET /plato/patients/ids` is MSW-only; real backend must build this endpoint
+- "Select all matching" loads all guids into browser memory — fine for prototype, not for 100k+ production
+- CSV upload matches only patients cached across visited pages (not all clinic patients)
+- treatment signatures in dropdown option labels not yet implemented
+- real backend pagination/search behavior not yet confirmed (MSW-only)
+
+Follow-up backend questions (still open):
+- does the real backend support `page`/`limit`/`search` on patient list?
+- does `POST /bulk-assign-treatment` already exist and match the expected body shape?
+- how does the real backend preserve treatment history on reassignment?
+- is a filter-based bulk assignment endpoint feasible? (recommended over two-step fetch for large clinics)
 
 Potential solution directions:
 
@@ -295,9 +330,8 @@ Primary stack:
 
 Technical discovery priorities for future repo/backend inspection:
 
-- how patient list pagination is implemented and whether the 180-patient load limit is real
-- whether Firestore queries use `limit`, `startAfter`, cursor pagination, or snapshots
-- whether there is already a backend endpoint for batch patient-treatment assignment
+- whether Firestore queries support `limit`/`startAfter` cursor pagination or snapshots (frontend now calls with page+limit; backend must match)
+- whether there is already a backend endpoint for batch patient-treatment assignment (`POST /bulk-assign-treatment`)
 - whether treatment assignment is expressed as treatment group IDs, patient treatment records, Firebase documents, or a mixed legacy shape
 - whether XLSX import dependencies already exist or should be added
 - how much TypeScript is present and whether new code should be JS/JSX or TS/TSX
@@ -339,7 +373,11 @@ Mock setup:
 
 - `VITE_ENV=mock` turns on MSW
 - `src/main.jsx` starts MSW when `VITE_ENV === "mock"`
-- `src/mocks/data.js` stores seed clinics, patients, stimulations, treatments, and other mock records
+- `src/mocks/data.js` — deterministic seeder controlled by `VITE_MOCK_SEED_PRESET`:
+  - `small`: 2 clinics, ~20 patients/clinic, 6 groups/clinic (dev sanity)
+  - `large`: 4 clinics, ~250 patients/clinic, 35 groups/clinic (demo-safe default)
+  - `stress`: 4 clinics, Clinic A 1,500 patients / 120 groups (stress test for Ed)
+  - Start with stress: `VITE_MOCK_SEED_PRESET=stress npm run dev`
 - `src/mocks/handlers.js` maps API endpoints to mock behavior
 - `public/mockServiceWorker.js` must remain available
 
@@ -560,11 +598,17 @@ Codex should proactively remind Torbjorn to refresh the mirror when the project 
 
 ## Current Open Questions
 
-- Should `v1-torbjorn` stay close to `main`, or selectively absorb more of `v1-anggakara`?
-- Which V1 changes are product decisions vs just one designer's exploration?
 - What is the true backend data model for treatment groups vs patient treatments?
-- How does Firebase pagination currently limit patient selection?
-- Does the real backend already support any bulk operations?
-- What exactly does a clinic order when it orders "750 devices"?
+- Does the real backend support paginated patient loading with `page`/`limit`/`search`?
+- Does `POST /bulk-assign-treatment` already exist in the real backend, and does it match the expected body shape?
+- Does the real backend support a lightweight "get all matching patient guids" endpoint, or is filter-based bulk assignment more feasible?
+- What exactly does a clinic order when it orders "750 devices"? (patient accounts, app credentials, physical devices, or all three?)
 - Should device ID become a first-class patient/account field in V1?
 - What role-based view is needed first: super admin only, or clinic admin too?
+- Is XLSX import for bulk patient/treatment assignment a near-term priority?
+
+## Resolved Questions (archived)
+
+- ~~Should `v1-torbjorn` stay close to `main`, or selectively absorb more of `v1-anggakara`?~~ → Resolved: `v1-torbjorn` is now built on top of `v1-anggakara`, absorbing all V1 UX prototype work plus Torbjorn's additional context docs and the clinic-scale Treatment Assignment redesign.
+- ~~Which V1 changes are product decisions vs just one designer's exploration?~~ → Core navigation restructure, Treatment Assignment flow, and patient detail cleanup are product decisions. The seeder and pagination redesign are Torbjorn's additions.
+- ~~How does Firebase pagination currently limit patient selection?~~ → The old prototype hardcoded `limit=500` in one request. The redesigned page uses `PAGE_SIZE=50` with proper server-side pagination. The "select all matching" flow calls `GET /plato/patients/ids` to get all guids without loading full patient objects.

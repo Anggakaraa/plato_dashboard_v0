@@ -41,6 +41,7 @@ Treatment Protocol Management is for defining protocols. Treatment Assignment is
 | State | Redux + Redux Saga | Avoid changing unless necessary |
 | Mock API | MSW | Mock Service Worker intercepts browser requests |
 | Tables | `react-table` | Use shared table components where possible |
+| Searchable select | `react-select` | Already installed; used in Treatment Assignment |
 | Font | Raleway | Do not reintroduce Poppins |
 
 Important files:
@@ -49,8 +50,10 @@ Important files:
 src/assets/scss/_variables.scss
 src/assets/scss/custom/components/
 src/assets/scss/custom/pages/
-src/mocks/data.js
+src/mocks/data.js                           ← Seeder (VITE_MOCK_SEED_PRESET=small|large|stress)
 src/mocks/handlers.js
+src/util/treatment-signature.js             ← Compact protocol summary from stimulation params
+src/pages/TreatmentAssignment/index.jsx     ← Treatment Assignment (paginated, select-all-matching)
 src/routes/index.jsx
 src/components/VerticalLayout/PlatoSidebarContent.jsx
 src/components/Common/PlatoTableContainer.jsx

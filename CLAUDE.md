@@ -8,7 +8,7 @@
 1. Read `HANDOVER.md` to understand current state and what's in progress
 2. Read `design-system.md` before touching any SCSS or styling
 3. Read `components.md` before building or editing any UI component
-4. Confirm which branch you're on — all V1 work goes on `v1-anggakara`
+4. Confirm which branch you're on — all V1 work goes on `v1-torbjorn`
 
 ---
 
@@ -21,6 +21,7 @@
 | Styling | SCSS + Bootstrap variable overrides | All tokens go in `_variables.scss` |
 | Navigation | MetisMenu | Sidebar only |
 | Tables | react-table | `PlatoTableContainer.jsx` (server-side) / `LocalTableContainer.jsx` (client-side) |
+| Searchable select | react-select | Used in Treatment Assignment protocol picker |
 | Font | Raleway via Google Fonts | Already applied |
 | State | Redux + Redux Saga | Don't touch unless necessary |
 | Icons | Dripicons + FontAwesome | Already wired |
@@ -31,7 +32,9 @@
 src/assets/scss/_variables.scss              ← All global tokens (already set)
 src/assets/scss/custom/components/           ← Component-level overrides
 src/mocks/handlers.js                        ← All API routes + mock responses
-src/mocks/data.js                            ← Seed data
+src/mocks/data.js                            ← Seeded mock data (VITE_MOCK_SEED_PRESET=small|large|stress)
+src/util/treatment-signature.js              ← Compact protocol summary from stimulation params
+src/pages/TreatmentAssignment/index.jsx      ← Treatment Assignment page (paginated, select-all-matching)
 src/components/VerticalLayout/PlatoSidebar.jsx
 src/components/VerticalLayout/PlatoSidebarContent.jsx
 src/components/VerticalLayout/PlatoHeader.jsx
@@ -65,12 +68,17 @@ Work in this sequence:
 - ✅ Stimulations renamed to Stimulation 1–6 (descriptive names removed to avoid confusion)
 - ✅ Treatment Protocols page — renamed (was "Treatment Steps"), stimulations column added, breadcrumbs fixed
 - ✅ Treatment Protocol edit — redirect to list after save, stimulations persist correctly
-- ✅ Treatment Assignment page — completely rebuilt as patient-first 4-step wizard:
-  - Step 1: Choose Clinic
-  - Step 2: Select patients (multi-select, shows active treatment)
-  - Step 3: Choose action (Assign to Protocol / Remove Treatment)
-  - Step 4: Review + Confirm
+- ✅ Treatment Assignment page — clinic-scale redesign:
+  - Server-side paginated patient table (PAGE_SIZE=50, debounced search)
+  - Three selection modes: none / explicit (may span pages) / all-matching
+  - "Select all matching patients" banner → calls `GET /plato/patients/ids`
+  - Disabled patients visible but not selectable; excluded from all-matching
+  - Searchable protocol picker (react-select) with treatment signature preview
+  - Confirmation modal shows replacement counts and all-matching scope note
 - ✅ Bulk assign and bulk unassign MSW handlers
+- ✅ `GET /plato/patients/ids` MSW endpoint (guid list + selection summary metadata)
+- ✅ `src/util/treatment-signature.js` — compact signature from stimulation params
+- ✅ Deterministic data seeder in `src/mocks/data.js` (VITE_MOCK_SEED_PRESET)
 - ✅ Post-assignment "View Patients" button + Redux patient list refresh
 
 #### Phase 4 — Patient Detail cleanup ✅
@@ -84,7 +92,7 @@ Work in this sequence:
 - ✅ Edit Protocol breadcrumb: "Treatment Management > Edit Protocol"
 - ✅ Empty state on Treatment Protocols list
 - ✅ Pagination fix (totalPages key mismatch)
-- ✅ 15 seed patients across 2 clinics for testable pagination
+- ✅ Large-scale seeder replacing 15 hand-written patients (see VITE_MOCK_SEED_PRESET)
 
 ---
 
@@ -98,7 +106,7 @@ Work in this sequence:
 
 **Do not:**
 - Touch Redux store or sagas
-- Change the data model in `data.js` unless necessary for new flows
+- Add new fields to entity shapes in `data.js` without checking existing handler/component usage
 - Build role-based auth (super admin view only for now)
 - Add Firebase connection (developer's job, not prototype scope)
 
