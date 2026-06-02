@@ -117,6 +117,11 @@ const TreatmentAssignment = (props) => {
 
   // ── Load clinics and protocols once
   useEffect(() => { dispatch(getClinics()) }, [])
+
+  // ── Auto-select when only one clinic available
+  useEffect(() => {
+    if (clinics.length === 1 && !selectedClinic) handleClinicChange(clinics[0])
+  }, [clinics])
   useEffect(() => {
     get(`${baseurl}/treatments-group`, true, {}).then(data => { if (data) setProtocols(data) })
   }, [])
@@ -172,6 +177,10 @@ const TreatmentAssignment = (props) => {
     setSelectedProtocol(null)
     knownPatientsRef.current = {}
   }
+
+  // ── Derived pagination range
+  const firstPatient = totalPatients === 0 ? 0 : (page - 1) * PAGE_SIZE + 1
+  const lastPatient = Math.min(page * PAGE_SIZE, totalPatients)
 
   // ── Derived selection state
   const activeLoadedPatients = loadedPatients.filter(p => !p.disabled)
@@ -365,18 +374,32 @@ const TreatmentAssignment = (props) => {
 
                 {/* ── Section 1: Clinic ──────────────────────────────────── */}
                 <p style={sectionLabel}>{props.t("Clinic")}</p>
-                <Input
-                  type="select"
-                  style={{ maxWidth: 360 }}
-                  value={selectedClinic?.guid || ""}
-                  onChange={e => {
-                    const found = clinics.find(c => c.guid === e.target.value)
-                    handleClinicChange(found || null)
-                  }}
-                >
-                  <option value="">{props.t("— Select a clinic —")}</option>
-                  {clinics.map(c => <option key={c.guid} value={c.guid}>{c.name}</option>)}
-                </Input>
+                <div style={{ maxWidth: 360 }}>
+                  <Select
+                    options={clinics.map(c => ({ value: c.guid, label: c.name, clinic: c }))}
+                    value={selectedClinic ? { value: selectedClinic.guid, label: selectedClinic.name } : null}
+                    onChange={opt => handleClinicChange(opt?.clinic ?? null)}
+                    placeholder={props.t("Search for a clinic...")}
+                    isClearable
+                    styles={selectStyles}
+                    noOptionsMessage={() => props.t("No clinics found")}
+                    menuPortalTarget={document.body}
+                    menuPosition="fixed"
+                  />
+                </div>
+
+                {/* ── No clinic selected — empty state ─────────────────── */}
+                {!selectedClinic && (
+                  <div className="text-center py-5">
+                    <i className="bx bx-building" style={{ fontSize: 36, display: "block", marginBottom: 12, color: "#EAE4DA" }} />
+                    <p className="fw-semibold mb-1" style={{ color: "#57072F" }}>
+                      {props.t("Select a clinic to manage treatment assignment")}
+                    </p>
+                    <p className="small mb-0" style={{ color: "#AC8599" }}>
+                      {props.t("Search for a clinic above to load its patients and available treatment protocols.")}
+                    </p>
+                  </div>
+                )}
 
                 {/* ── Section 2: Patients ────────────────────────────────── */}
                 {selectedClinic && (
@@ -417,12 +440,14 @@ const TreatmentAssignment = (props) => {
                               onChange={e => setSearchInput(e.target.value)}
                             />
                           </Col>
-                          <Col className="text-muted small">
-                            {loadingPatients
-                              ? <span><Spinner size="sm" className="me-1" />Loading…</span>
-                              : totalPatients > 0
-                                ? `Showing ${loadedPatients.length} of ${totalPatients} patients`
-                                : "No patients found"}
+                          <Col className="text-muted small d-flex align-items-center gap-2">
+                            {loadingPatients && <span><Spinner size="sm" className="me-1" />Loading…</span>}
+                            {!loadingPatients && activeSearch && totalPatients > 0 && (
+                              <span>{totalPatients} matching patients</span>
+                            )}
+                            {!loadingPatients && activeSearch && totalPatients === 0 && (
+                              <span>No matching patients</span>
+                            )}
                           </Col>
                         </Row>
 
@@ -498,7 +523,7 @@ const TreatmentAssignment = (props) => {
                                     <td className="text-muted small">{p.email}</td>
                                     <td>
                                       {treatment
-                                        ? <Badge style={{ backgroundColor: "#EAE4DA", color: "#57072F", fontWeight: 500 }}>{treatment}</Badge>
+                                        ? <span style={{ display: "inline-block", maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", backgroundColor: "#FFF5F8", border: "1px solid #EAE4DA", borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, color: "#57072F", verticalAlign: "middle" }} title={treatment}>{treatment}</span>
                                         : <span className="text-muted small">{props.t("None")}</span>}
                                     </td>
                                   </tr>
@@ -509,19 +534,26 @@ const TreatmentAssignment = (props) => {
                         </div>
 
                         {/* Pagination */}
-                        {totalPages > 1 && (
-                          <div className="d-flex justify-content-center mt-3">
-                            <Pagination size="sm">
-                              <PaginationItem disabled={page <= 1 || loadingPatients}>
-                                <PaginationLink previous onClick={() => setPage(p => Math.max(1, p - 1))} />
-                              </PaginationItem>
-                              <PaginationItem disabled>
-                                <PaginationLink style={{ color: "#57072F" }}>Page {page} of {totalPages}</PaginationLink>
-                              </PaginationItem>
-                              <PaginationItem disabled={page >= totalPages || loadingPatients}>
-                                <PaginationLink next onClick={() => setPage(p => Math.min(totalPages, p + 1))} />
-                              </PaginationItem>
-                            </Pagination>
+                        {totalPatients > 0 && (
+                          <div className="d-flex justify-content-between align-items-center mt-3">
+                            <span className="text-muted small">
+                              {totalPatients > 0
+                                ? `Showing patients ${firstPatient}–${lastPatient} of ${totalPatients}`
+                                : ""}
+                            </span>
+                            {totalPages > 1 && (
+                              <Pagination size="sm" className="mb-0">
+                                <PaginationItem disabled={page <= 1 || loadingPatients}>
+                                  <PaginationLink previous onClick={() => setPage(p => Math.max(1, p - 1))} />
+                                </PaginationItem>
+                                <PaginationItem disabled>
+                                  <PaginationLink style={{ color: "#57072F" }}>Page {page} of {totalPages}</PaginationLink>
+                                </PaginationItem>
+                                <PaginationItem disabled={page >= totalPages || loadingPatients}>
+                                  <PaginationLink next onClick={() => setPage(p => Math.min(totalPages, p + 1))} />
+                                </PaginationItem>
+                              </Pagination>
+                            )}
                           </div>
                         )}
                       </>
@@ -567,7 +599,7 @@ const TreatmentAssignment = (props) => {
                                           <tr key={p.guid}>
                                             <td>{p.name}</td>
                                             <td className="text-muted small">{p.email}</td>
-                                            <td>{treatment ? <Badge style={{ backgroundColor: "#EAE4DA", color: "#57072F", fontWeight: 500 }}>{treatment}</Badge> : <span className="text-muted small">{props.t("None")}</span>}</td>
+                                            <td>{treatment ? <span style={{ display: "inline-block", maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", backgroundColor: "#FFF5F8", border: "1px solid #EAE4DA", borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, color: "#57072F", verticalAlign: "middle" }} title={treatment}>{treatment}</span> : <span className="text-muted small">{props.t("None")}</span>}</td>
                                           </tr>
                                         )
                                       })}
