@@ -27,7 +27,7 @@ let interventions = Object.fromEntries(
 );
 // Treatment groups with mutable patient_treatment array so assignments persist
 // during the session and pre-select correctly when revisiting a detail page.
-let treatmentGroups = TREATMENT_GROUPS.map((g) => ({ ...g, patient_treatment: [] }));
+let treatmentGroups = TREATMENT_GROUPS.map((g) => ({ ...g, patient_treatment: [...(g.patient_treatment ?? [])] }));
 let nextPatientId = patients.length + 1;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -256,6 +256,41 @@ export const handlers = [
     }
     if (page !== null && limit !== null) return ok(paginate(results, Number(page), Number(limit)));
     return ok(results);
+  }),
+
+  // ── GET /plato/patients/ids ─────────────────────────────────────────────────
+  // MSW prototype bridge for "Select all matching patients."
+  // Returns guids and a lightweight summary for all ACTIVE (non-disabled) patients
+  // matching the current clinic + search filter, without loading full patient objects.
+  //
+  // Future backend alternatives (document in HANDOVER.md):
+  //   Option A (recommended): POST /bulk-assign-treatment accepts a filter object
+  //     { treatment_group_guid, filter: { clinic_guid, search } }
+  //     so the backend applies the filter server-side and no two-step fetch is needed.
+  //   Option B: This endpoint stays but returns only guids (not summary metadata);
+  //     confirmation counts come from backend patient records.
+  http.get(`${API}/plato/patients/ids`, ({ request }) => {
+    const url = new URL(request.url);
+    const clinicGuid = url.searchParams.get("clinic_guid") || "";
+    const search = url.searchParams.get("search") || "";
+
+    let results = patients;
+    if (clinicGuid) results = results.filter(p => p.clinic_patients?.some(cp => cp.clinic_id === clinicGuid));
+    if (search) {
+      const q = search.toLowerCase();
+      results = results.filter(p => {
+        const clinicName = p.clinic_patients?.[0]?.clinic?.name?.toLowerCase() ?? "";
+        return p.name.toLowerCase().includes(q) || p.email.toLowerCase().includes(q) || clinicName.includes(q);
+      });
+    }
+
+    const active = results.filter(p => !p.disabled);
+    const disabled = results.filter(p => p.disabled);
+    const guids = active.map(p => p.guid);
+    const activeTreatmentCount = active.filter(p => p.patient_treatments?.some(t => !t.disabled)).length;
+    const noTreatmentCount = active.filter(p => !p.patient_treatments?.some(t => !t.disabled)).length;
+
+    return ok({ guids, total: guids.length, activeTreatmentCount, noTreatmentCount, disabledCount: disabled.length });
   }),
 
   http.get(`${API}/plato/patient`, ({ request }) => {

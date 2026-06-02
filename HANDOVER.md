@@ -410,4 +410,67 @@ vercel --prod
 
 ---
 
-*Last updated: 2026-05-29 — V1 feasibility analysis added (comparison vs original client codebase); migration checklist added; new backend endpoints documented*
+*Last updated: 2026-06-02 — Large-scale mock data seeder added; Treatment Assignment UI redesigned with server-side pagination, "select all matching" semantics, searchable protocol picker, and treatment signatures; backend handoff requirements documented below.*
+
+---
+
+## Treatment Assignment — Backend Handoff Requirements
+
+The Treatment Assignment prototype (v1-torbjorn) uses MSW mock data throughout. The following table distinguishes what is confirmed in the prototype vs. what the real Firebase backend must implement.
+
+| Capability | MSW prototype | Real backend status |
+|---|---|---|
+| Paginated patient loading (`page` + `limit`) | ✅ Implemented — `GET /plato/patients?page=N&limit=50` | ❓ Not yet confirmed — **must implement** |
+| Server-side search by name/email | ✅ Implemented in MSW | ❓ Not yet confirmed — **must implement** |
+| Clinic filter on patient list | ✅ Implemented in MSW | ❓ Not yet confirmed — **must implement** |
+| `GET /plato/patients/ids` (lightweight guid list + summary) | ✅ MSW-only prototype bridge | ❌ Does not exist — **must build** (see below) |
+| `POST /bulk-assign-treatment` by explicit guid list | ✅ Implemented | ❓ Assumed to exist — **confirm** |
+| `POST /bulk-assign-treatment` by filter criteria | ❌ Not implemented | ❌ Recommended future endpoint (see below) |
+| `POST /bulk-unassign-treatment` by explicit guid list | ✅ Implemented | ❓ Assumed to exist — **confirm** |
+
+### New endpoint: `GET /plato/patients/ids`
+
+Used by "Select all matching patients" in the Treatment Assignment flow. Returns only patient guids and a lightweight count summary — not full patient objects.
+
+```
+GET /plato/patients/ids?clinic_guid=<guid>&search=<q>
+→ {
+    guids: ["pat-001", "pat-002", ...],
+    total: 1450,
+    activeTreatmentCount: 720,
+    noTreatmentCount: 290,
+    disabledCount: 75
+  }
+```
+
+Disabled patients are excluded from `guids`, `activeTreatmentCount`, and `noTreatmentCount`. They are counted separately as `disabledCount` (informational only).
+
+### Recommended future improvement: filter-based bulk assignment
+
+The two-step fetch (get all guids → send explicit list) is fine for 1,500 patients but becomes fragile at 100k+. The ideal backend endpoint should accept a filter object directly:
+
+```json
+POST /bulk-assign-treatment
+{
+  "treatment_group_guid": "tg-001",
+  "filter": { "clinic_guid": "clinic-001", "search": "Smith" }
+}
+```
+
+The backend applies the filter server-side and creates treatment records for all matching patients in one atomic operation.
+
+### Mock data scale presets
+
+The prototype data seeder (`src/mocks/data.js`) is controlled by `VITE_MOCK_SEED_PRESET`:
+- `small` — 2 clinics, ~20 patients/clinic, 6 groups/clinic (dev default)
+- `large` — 4 clinics, ~250 patients/clinic, 35 groups/clinic (demo-safe default)
+- `stress` — 4 clinics, Clinic A 1,500 patients / 120 groups (stress test)
+
+Set via `.env` file or Vercel environment variable. The default is `large`.
+
+### Known prototype limitations
+
+- "Select all matching" fetches all guids into browser memory — acceptable for prototype, not for production at 100k+ scale
+- Patient table renders 50 rows at a time (no DOM virtualization — sufficient for PAGE_SIZE=50)
+- CSV upload only matches patients that have been loaded across visited pages (not all patients in the clinic)
+- Treatment signatures in the protocol dropdown list are not shown — only the selected protocol preview shows the signature (future enhancement)
