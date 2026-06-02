@@ -457,3 +457,11 @@ Things the brand book doesn't specify — decisions made for the dashboard:
 | Scrollbars | `#AC8599` thumb on `#EAE4DA` track (via SimpleBar) |
 | Data viz colors | Primary → Secondary → PlatoCare-1 → PlatoWork-1 → Accent |
 | Sort indicators | `#57072F` chevrons, sortable columns only |
+
+---
+
+## 12. Non-Canonical Gate Styles
+
+`src/pages/Gate/design-system/theme.css` is **not** the PlatoScience design system. It uses separate Gate tokens: blue/purple colors, Inter font, cold greys, and gradients that conflict with the dashboard direction.
+
+Treat Gate styles as legacy/local feature styles unless explicitly asked to work inside the Gate area.
