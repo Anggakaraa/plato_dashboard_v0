@@ -183,7 +183,7 @@ const PlatoSidebarContent = (props) => {
             <li>
               <Link to="/treatment-protocols" className="">
                 <i className="bx bx-list-ul"></i>
-                <span>{props.t("Treatment Management")}</span>
+                <span>{props.t("Treatment Groups")}</span>
               </Link>
             </li>
 
