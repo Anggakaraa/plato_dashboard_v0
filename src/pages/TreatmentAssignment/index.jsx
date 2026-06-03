@@ -31,9 +31,14 @@ import { get, post } from "../../api/manager"
 import { getClinics, getPatients } from "../../store/actions"
 import { buildTreatmentSignature } from "../../util/treatment-signature"
 
-// ── Active treatment label for a patient ──────────────────────────────────────
+// ── Active treatment helpers ───────────────────────────────────────────────────
+// Returns the full active treatment record. Same predicate as activeTreatmentName.
+const activeTreatmentObj = (patient) =>
+  patient.patient_treatments?.find(t => !t.disabled && !t.completed) ?? null
+
+// Returns just the display name string (used for replacingCount and confirm bar).
 const activeTreatmentName = (patient) => {
-  const active = patient.patient_treatments?.find(t => !t.disabled && !t.completed)
+  const active = activeTreatmentObj(patient)
   return active?.treatment_group?.name ?? active?.name ?? null
 }
 
@@ -348,6 +353,9 @@ const TreatmentAssignment = (props) => {
       <div className="page-content" style={{ paddingBottom: canConfirm && !success ? 80 : undefined }}>
         <Container fluid>
           <Breadcrumbs title={props.t("Treatment Management")} breadcrumbItem={props.t("Treatment Assignment")} />
+          <p className="text-muted mb-4" style={{ fontSize: 13 }}>
+            {props.t("Assign or remove treatments for patients in a selected clinic.")}
+          </p>
 
           {/* ── Success screen ─────────────────────────────────────────────── */}
           {success ? (
@@ -419,7 +427,7 @@ const TreatmentAssignment = (props) => {
                       </div>
                       <div className="d-flex gap-2">
                         <button className={`btn btn-sm ${inputMode === "manual" ? "btn-primary" : "btn-outline-secondary"}`} onClick={() => { setInputMode("manual"); handleClearCsv() }}>
-                          <i className="bx bx-list-ul me-1" />{props.t("Select Manually")}
+                          <i className="bx bx-list-ul me-1" />{props.t("Select from Table")}
                         </button>
                         <button className={`btn btn-sm ${inputMode === "csv" ? "btn-primary" : "btn-outline-secondary"}`} onClick={() => { setInputMode("csv"); clearSelection(); setSearchInput("") }}>
                           <i className="bx bx-upload me-1" />{props.t("Upload CSV")}
@@ -499,7 +507,9 @@ const TreatmentAssignment = (props) => {
                               )}
                               {loadedPatients.map(p => {
                                 const checked = selectedGuids.includes(p.guid)
-                                const treatment = activeTreatmentName(p)
+                                const treatmentObj = activeTreatmentObj(p)
+                                const treatment = treatmentObj?.treatment_group?.name ?? treatmentObj?.name ?? null
+                                const isSham = (treatmentObj?.is_sham ?? false) && !treatment?.toLowerCase().includes("sham")
                                 const isDisabled = p.disabled
                                 return (
                                   <tr
@@ -522,9 +532,16 @@ const TreatmentAssignment = (props) => {
                                     </td>
                                     <td className="text-muted small">{p.email}</td>
                                     <td>
-                                      {treatment
-                                        ? <span style={{ display: "inline-block", maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", backgroundColor: "#FFF5F8", border: "1px solid #EAE4DA", borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, color: "#57072F", verticalAlign: "middle" }} title={treatment}>{treatment}</span>
-                                        : <span className="text-muted small">{props.t("None")}</span>}
+                                      {treatment ? (
+                                        <span style={{ color: "#495057", fontSize: 13 }} title={treatment}>
+                                          {treatment}
+                                          {isSham && (
+                                            <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", color: "#AC8599", border: "1px solid #EAE4DA", borderRadius: 3, padding: "1px 5px", verticalAlign: "middle", textTransform: "uppercase" }}>Sham</span>
+                                          )}
+                                        </span>
+                                      ) : (
+                                        <span className="text-muted small">{props.t("None")}</span>
+                                      )}
                                     </td>
                                   </tr>
                                 )
@@ -594,12 +611,23 @@ const TreatmentAssignment = (props) => {
                                     </thead>
                                     <tbody>
                                       {csvMatched.map(p => {
-                                        const treatment = activeTreatmentName(p)
+                                        const tObj = activeTreatmentObj(p)
+                                        const treatment = tObj?.treatment_group?.name ?? tObj?.name ?? null
+                                        const tSham = (tObj?.is_sham ?? false) && !treatment?.toLowerCase().includes("sham")
                                         return (
                                           <tr key={p.guid}>
                                             <td>{p.name}</td>
                                             <td className="text-muted small">{p.email}</td>
-                                            <td>{treatment ? <span style={{ display: "inline-block", maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", backgroundColor: "#FFF5F8", border: "1px solid #EAE4DA", borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 500, color: "#57072F", verticalAlign: "middle" }} title={treatment}>{treatment}</span> : <span className="text-muted small">{props.t("None")}</span>}</td>
+                                            <td>
+                                              {treatment ? (
+                                                <span style={{ color: "#495057", fontSize: 13 }} title={treatment}>
+                                                  {treatment}
+                                                  {tSham && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", color: "#AC8599", border: "1px solid #EAE4DA", borderRadius: 3, padding: "1px 5px", verticalAlign: "middle", textTransform: "uppercase" }}>Sham</span>}
+                                                </span>
+                                              ) : (
+                                                <span className="text-muted small">{props.t("None")}</span>
+                                              )}
+                                            </td>
                                           </tr>
                                         )
                                       })}
@@ -629,10 +657,14 @@ const TreatmentAssignment = (props) => {
                 )}
 
                 {/* ── Section 3: Action ──────────────────────────────────── */}
+                {/* TODO: Action bar should move into the Patients section header area in a future pass */}
                 {selectedGuids.length > 0 && (
                   <>
                     <hr style={{ borderColor: "#EAE4DA", margin: "1.5rem 0" }} />
-                    <p style={sectionLabel}>{props.t("Action")}</p>
+                    <p style={{ ...sectionLabel, textTransform: "none", fontSize: "0.8rem" }}>
+                      {props.t("Actions for")} {selectedGuids.length}{" "}
+                      {selectedGuids.length !== 1 ? props.t("selected patients") : props.t("selected patient")}
+                    </p>
                     <Row className="g-3">
 
                       {/* Assign card */}
@@ -646,9 +678,9 @@ const TreatmentAssignment = (props) => {
                             <div style={{ width: 36, height: 36, borderRadius: "50%", backgroundColor: action === "assign" ? "#57072F" : "#EAE4DA", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                               <i className="bx bx-plus" style={{ color: action === "assign" ? "#fff" : "#57072F", fontSize: 18 }} />
                             </div>
-                            <strong style={{ color: "#57072F" }}>{props.t("Assign to Protocol")}</strong>
+                            <strong style={{ color: "#57072F" }}>{props.t("Assign Treatment")}</strong>
                           </div>
-                          <p className="text-muted small mb-0">{props.t("Enrol selected patients into a protocol. Any existing treatment is automatically replaced.")}</p>
+                          <p className="text-muted small mb-0">{props.t("Assign the selected patients to an existing treatment. Any current active treatment will be replaced.")}</p>
 
                           {action === "assign" && (
                             <div className="mt-3" onClick={e => e.stopPropagation()}>
@@ -684,7 +716,7 @@ const TreatmentAssignment = (props) => {
                             </div>
                             <strong style={{ color: "#57072F" }}>{props.t("Remove Treatment")}</strong>
                           </div>
-                          <p className="text-muted small mb-0">{props.t("Remove the active treatment from selected patients without assigning a new one.")}</p>
+                          <p className="text-muted small mb-0">{props.t("Remove the active treatment from the selected patients.")}</p>
                           {action === "remove" && (
                             <div className="mt-3 p-2 rounded" style={{ backgroundColor: "#fff4f4", border: "1px solid #f5c6cb" }}>
                               <p className="mb-0 small" style={{ color: "#721c24" }}>
