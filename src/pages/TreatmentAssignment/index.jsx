@@ -684,11 +684,11 @@ const TreatmentAssignment = (props) => {
 
                           {action === "assign" && (
                             <div className="mt-3" onClick={e => e.stopPropagation()}>
-                              <Label className="small fw-semibold">{props.t("Select Protocol")}</Label>
+                              <Label className="small fw-semibold">{props.t("Select Treatment")}</Label>
                               <Select
                                 options={protocolOptions}
                                 value={selectedProtocolOption}
-                                placeholder={props.t("— Choose a protocol —")}
+                                placeholder={props.t("— Choose a treatment —")}
                                 onChange={opt => setSelectedProtocol(opt?.protocol ?? null)}
                                 isClearable
                                 styles={selectStyles}
@@ -788,7 +788,7 @@ const TreatmentAssignment = (props) => {
               </Col>
               {action === "assign" && (
                 <Col sm={12}>
-                  <p className="mb-1 small text-muted text-uppercase" style={{ letterSpacing: "0.05em" }}>{props.t("Protocol")}</p>
+                  <p className="mb-1 small text-muted text-uppercase" style={{ letterSpacing: "0.05em" }}>{props.t("Treatment")}</p>
                   <p className="mb-0 fw-semibold">{selectedProtocol?.name}</p>
                   {signature && <p className="mb-0 small text-muted" style={{ fontStyle: "italic" }}>{signature}</p>}
                 </Col>
