@@ -13,7 +13,7 @@
 
 // ─── SEED PRESET ──────────────────────────────────────────────────────────────
 
-const SEED_PRESET = (typeof import.meta !== "undefined" && import.meta.env?.VITE_MOCK_SEED_PRESET) || "large"
+const SEED_PRESET = (typeof import.meta !== "undefined" && import.meta.env?.VITE_MOCK_SEED_PRESET) || "stress"
 
 const PRESET = {
   small:  { clinicCount: 2, patientsPerClinic: {}, defaultPatients: 20,   stimTotal: 12,  groupsPerClinic: {}, defaultGroups: 6   },
